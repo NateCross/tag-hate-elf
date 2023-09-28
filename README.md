@@ -94,3 +94,7 @@ After running the app run this code
 ```
 deactivate
 ```
+
+## Other packages to install
+
+- `scikit-learn`

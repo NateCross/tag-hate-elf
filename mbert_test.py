@@ -10,7 +10,7 @@ tokenizer = BertTokenizer.from_pretrained(model_name)
 
 # Load your CSV data
 data = pd.read_csv(
-    "C:/Users/Sam/Desktop/Hate Speech Detection/datasets/test100.csv"
+    "./datasets/test100.csv"
 )
 
 # Extract input text and labels
