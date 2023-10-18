@@ -98,3 +98,5 @@ deactivate
 ## Other packages to install
 
 - `scikit-learn`
+- `pip install -e "git+https://github.com/kostyachum/python-markdown-plain-text.git#egg=plain-text-markdown-extention"`
+  - Needed to convert reddit comments into plain text
