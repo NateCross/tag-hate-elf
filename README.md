@@ -100,3 +100,7 @@ deactivate
 - `scikit-learn`
 - `pip install -e "git+https://github.com/kostyachum/python-markdown-plain-text.git#egg=plain-text-markdown-extention"`
   - Needed to convert reddit comments into plain text
+
+## Credits
+
+[Tagalog Stopwords](https://github.com/stopwords-iso/stopwords-tl/blob/master/stopwords-tl.txt)

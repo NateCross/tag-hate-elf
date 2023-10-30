@@ -1,7 +1,9 @@
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import BernoulliNB
 import numpy as np
 import pandas as pd
+
+stop_words = open("./stopwords-tl.txt", "r").read().split('\n')
 
 bayes = BernoulliNB()
 
@@ -13,9 +15,13 @@ y_train = np.array([row[1] for row in train_csv.values])
 
 # We need to transform text into numerical values
 # This is one of the ways to do it. Needs investigation to improve
-vectorizer = CountVectorizer()
+# vectorizer = CountVectorizer()
+vectorizer = TfidfVectorizer(
+    stop_words=stop_words,
+)
 vectorizer.fit(x_train)
-x_train = vectorizer.transform(x_train).toarray()
+x_train = vectorizer.transform(x_train)
+# x_train = vectorizer.transform(x_train).toarray()
 
 # Some values are nan because of improper encoding as a csv
 # This is a temporary fix to that. It needs proper cleaning
