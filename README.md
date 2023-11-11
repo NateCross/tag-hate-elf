@@ -2,6 +2,7 @@
 
 Hate Speech Detection Application using Transformer Models
 
+Enhancing Hate Speech Detection in Tagalog and Taglish Text: An Ensemble Learning Framework Using Bernoulli Naive Bayes, LSTM, and mBERT
 ### Summary
 
 This documentation covers the development of the thesis requirement in BSCS IV. This covers the development of the AI for the use of research.
