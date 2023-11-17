@@ -1,1 +1,5 @@
 venv/
+lstm_trainor
+
+datasets/output_100.csv
+datasets/output.csv
