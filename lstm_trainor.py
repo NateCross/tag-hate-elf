@@ -15,7 +15,7 @@ from transformers import BertTokenizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # CSV DATASET
-data = pd.read_csv("C:/Users/Sam/Desktop/Hate Speech Detection/datasets/output.csv")
+data = pd.read_csv("./datasets/output.csv")
 
 # Extract input text and labels
 input_text = data["text"]
@@ -29,6 +29,9 @@ class_weights = {cls: total_samples / count for cls, count in class_counts.items
 # For binary classification, we are interested in the weight for the positive class
 pos_weight = class_weights[1]  # Assuming 1 is the positive class
 pos_weight_tensor = torch.tensor([pos_weight], dtype=torch.float32).to(device)
+
+# Import stop words for vectorizer
+# stop_words = open("./stopwords-tl.txt", "r").read().split('\n')
 
 # Tokenize and encode the data
 # Still need to change tokenizer since this is using bert
@@ -67,8 +70,8 @@ input_size = len(tokenizer.get_vocab())
 hidden_size = 128
 output_size = 1  # Binary classification (1 output for BCEWithLogitsLoss)
 num_layers = 2
-learning_rate = 0.0001
-num_epochs = 1
+learning_rate = 0.000001
+num_epochs = 10
 batch_size = 32  # for batches in training the model
 
 # Create DataLoader for training data
@@ -98,7 +101,8 @@ class LSTMModel(nn.Module):
 
 # Initialize the model, loss function, and optimizer
 lstm_model = LSTMModel(input_size, hidden_size, output_size, num_layers).to(device)
-criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
+# criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
+criterion = nn.L1Loss()
 optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 
 # Training loop using Batching for large dataset which in this case is 4.2k data
@@ -115,6 +119,10 @@ for epoch in range(num_epochs):
         outputs = lstm_model(inputs_batch)
         loss = criterion(outputs, labels_batch)
         loss.backward()
+
+        # Gradient clipping, seems to affect loss values
+        # Tweak as necessary
+        nn.utils.clip_grad_norm_(lstm_model.parameters(), 0.01)
         optimizer.step()
 
     # Evaluate the model on the validation set
@@ -132,5 +140,5 @@ for epoch in range(num_epochs):
 # Save the trained model
 torch.save(
     lstm_model.state_dict(),
-    "C:/Users/Sam/Desktop/Hate Speech Detection/lstm_model",
+    "./lstm_model",
 )

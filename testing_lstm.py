@@ -13,7 +13,7 @@ num_layers = 2
 # Load the trained LSTM model
 lstm_model = LSTMModel(input_size, hidden_size, output_size, num_layers)
 lstm_model.load_state_dict(
-    torch.load("C:/Users/Sam/Desktop/Hate Speech Detection/lstm_model")
+    torch.load("./lstm_model")
 )
 
 # Set the model to evaluation mode
