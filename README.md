@@ -2,6 +2,7 @@
 
 Hate Speech Detection Application using Transformer Models
 
+Enhancing Hate Speech Detection in Tagalog and Taglish Text: An Ensemble Learning Framework Using Bernoulli Naive Bayes, LSTM, and mBERT
 ### Summary
 
 This documentation covers the development of the thesis requirement in BSCS IV. This covers the development of the AI for the use of research.
@@ -94,3 +95,13 @@ After running the app run this code
 ```
 deactivate
 ```
+
+## Other packages to install
+
+- `scikit-learn`
+- `pip install -e "git+https://github.com/kostyachum/python-markdown-plain-text.git#egg=plain-text-markdown-extention"`
+  - Needed to convert reddit comments into plain text
+
+## Credits
+
+[Tagalog Stopwords](https://github.com/stopwords-iso/stopwords-tl/blob/master/stopwords-tl.txt)
