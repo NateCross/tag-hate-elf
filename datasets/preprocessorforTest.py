@@ -4,8 +4,8 @@ import re
 
 # Specify the input and output file paths (use absolute paths)
 current_directory = os.getcwd()
-input_file = os.path.join(current_directory, "datasets", "test.csv")
-output_file = os.path.join(current_directory, "datasets", "output.csv")
+input_file = os.path.join(current_directory, "test.csv")
+output_file = os.path.join(current_directory, "output.csv")
 
 
 # Function to read the CSV file and modify the first column
