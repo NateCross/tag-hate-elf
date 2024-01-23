@@ -6,3 +6,5 @@ datasets/output.csv
 lstm_model
 __pycache__
 scraping/data-*
+*.pt
+*.pickle

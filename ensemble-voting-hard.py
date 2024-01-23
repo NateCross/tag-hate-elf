@@ -46,6 +46,7 @@ ensemble = VotingClassifier(
     estimators=[
         ('nb', bayes_model),
         ('lstm', lstm_net),
+        ('mbert', )
     ],
     voting='hard',
 )
