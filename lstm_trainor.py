@@ -138,7 +138,14 @@ for epoch in range(num_epochs):
     print(f"Validation loss: {val_loss / len(val_loader)}")
 
 # Save the trained model
+# torch.save(
+#     lstm_model.state_dict(),
+#     "./lstm_model",
+# )
+
+# Temporarily saving and loading the entire model
+# We must switch to the state dict one after confirming it works
 torch.save(
-    lstm_model.state_dict(),
-    "./lstm_model",
+    lstm_model,
+    "./lstm_model.pt",
 )

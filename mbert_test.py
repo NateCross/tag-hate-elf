@@ -10,7 +10,7 @@ tokenizer = BertTokenizer.from_pretrained(model_name)
 
 # Load your CSV data
 data = pd.read_csv(
-    "./datasets/test100.csv"
+    "./datasets/output.csv"
 )
 
 # Extract input text and labels
@@ -41,6 +41,7 @@ labels = torch.tensor(labels.tolist())
 
 # Perform inference for text classification
 with torch.no_grad():
+    model.train()
     outputs = model(input_ids, attention_mask=attention_masks)
 
 """
@@ -57,5 +58,9 @@ predicted_labels = torch.argmax(logits, dim=1)
 # Calculate accuracy
 accuracy = torch.sum(predicted_labels == labels).item() / len(labels)
 
-
 print(f"Accuracy: {accuracy * 100:.2f}%")
+
+torch.save(
+    model,
+    "./mbert_model.pt",
+)

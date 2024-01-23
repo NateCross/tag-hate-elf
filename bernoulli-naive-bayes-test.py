@@ -2,6 +2,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import BernoulliNB
 import numpy as np
 import pandas as pd
+import torch
+import sk2torch
 
 stop_words = open("./stopwords-tl.txt", "r").read().split('\n')
 
@@ -32,3 +34,18 @@ result = bayes.fit(x_train, y_train)
 
 # Current result: 0.8206
 print(result.score(x_train, y_train))
+
+# Saving the fit data
+import pickle
+with open('naive-bayes.pickle', 'wb') as file:
+    pickle.dump(bayes, file)
+    print('Saved file')
+
+
+
+# Save the BNB model using sk2torch
+# torch_model = sk2torch.wrap(result)
+# torch.save(
+#     torch_model.state_dict(),
+#     "./bnb_model",
+# )
