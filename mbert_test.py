@@ -3,23 +3,21 @@ import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 import pandas as pd
 
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Load the pre-trained BERT model for sequence classification
 model_name = "bert-base-multilingual-cased"
 model = BertForSequenceClassification.from_pretrained(
     model_name,
-    # device_map=device,
+    device_map=device,
 )
-# model.to(device)
+model.to(device)
 
 tokenizer = BertTokenizer.from_pretrained(model_name, use_fast=True)
 
-# tokenizer.to(device)
-
 # Load your CSV data
 data = pd.read_csv(
-    "./datasets/test.csv"
+    "./datasets/output.csv"
 )
 
 # Extract input text and labels
@@ -42,11 +40,11 @@ for text in input_text:
     input_ids.append(encoded["input_ids"])
     attention_masks.append(encoded["attention_mask"])
 
-input_ids = torch.cat(input_ids, dim=0)
-attention_masks = torch.cat(attention_masks, dim=0)
+input_ids = torch.cat(input_ids, dim=0).to(device)
+attention_masks = torch.cat(attention_masks, dim=0).to(device)
 
 # Convert labels to tensor
-labels = torch.tensor(labels.tolist())
+labels = torch.tensor(labels.tolist()).to(device)
 
 print('before train')
 # Perform inference for text classification
