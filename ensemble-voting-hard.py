@@ -42,11 +42,20 @@ lstm_net = NeuralNetClassifier(
     device=device,
 )
 
+bert_model = torch.load('./mbert_model.pt')
+bert_model.eval()
+
+bert_net = NeuralNetClassifier(
+    bert_model,
+    device=device,
+)
+
 ensemble = VotingClassifier(
     estimators=[
         ('nb', bayes_model),
         ('lstm', lstm_net),
-        ('mbert', )
+        ('bert', bert_model)
     ],
     voting='hard',
 )
+print(ensemble)

@@ -1,9 +1,10 @@
 import torch
 
-from transformers import BertTokenizer, BertForSequenceClassification
+from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
 import pandas as pd
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# device = 'cpu'
 
 # Load the pre-trained BERT model for sequence classification
 model_name = "bert-base-multilingual-cased"
@@ -17,7 +18,7 @@ tokenizer = BertTokenizer.from_pretrained(model_name, use_fast=True)
 
 # Load your CSV data
 data = pd.read_csv(
-    "./datasets/output.csv"
+    "./datasets/testfor100.csv"
 )
 
 # Extract input text and labels
@@ -46,11 +47,15 @@ attention_masks = torch.cat(attention_masks, dim=0).to(device)
 # Convert labels to tensor
 labels = torch.tensor(labels.tolist()).to(device)
 
+training_args = TrainingArguments('tmp_trainer', per_device_train_batch_size=1)
+trainer = Trainer(model=model, args=training_args, )
+
+
 print('before train')
 # Perform inference for text classification
 with torch.no_grad():
     model.train()
-    outputs = model(input_ids, attention_mask=attention_masks)
+    outputs = model(input_ids, attention_mask=attention_masks, batch_size=1)
 print('after train')
 
 """
