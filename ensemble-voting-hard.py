@@ -1,9 +1,10 @@
 import torch
 from torch import nn
+import torch.optim as optim
 from sklearn.ensemble import VotingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
-from skorch import NeuralNetClassifier
+from skorch import NeuralNetBinaryClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 import numpy as np
 import pandas as pd
@@ -63,7 +64,7 @@ class LSTMModel(nn.Module):
         # print('finish lstm slicing')
         output = self.fc(lstm_out)
         print('output:')
-        print(output)
+        print(output.shape)
         # print('finish output')
 
         return output.squeeze(1)  # Squeeze the output to a single dimension
@@ -77,8 +78,13 @@ print('Loaded tokenizer')
 
 lstm_model = torch.load("./lstm_model.pt")
 lstm_model.eval()
-lstm_net = NeuralNetClassifier(
+criterion = nn.BCEWithLogitsLoss
+learning_rate = 0.000001
+optimizer = optim.Adam
+lstm_net = NeuralNetBinaryClassifier(
     lstm_model,
+    criterion=criterion,
+    optimizer=optimizer,
     batch_size=10,
     device=device,
 )
@@ -96,7 +102,7 @@ print('Loaded lstm')
 
 bert_model = torch.load('./mbert_model.pt')
 bert_model.eval()
-bert_net = NeuralNetClassifier(
+bert_net = NeuralNetBinaryClassifier(
     bert_model,
     batch_size=10,
     device=device,
