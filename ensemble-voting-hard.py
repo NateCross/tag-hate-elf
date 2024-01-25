@@ -54,8 +54,8 @@ class LSTMModel(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, input_ids, **kwargs):
-        print("input ids:")
-        print(input_ids)
+        # print("input ids:")
+        # print(input_ids)
         input_ids = self.embedding(input_ids)
         # print('finish embedding')
         lstm_out, _ = self.lstm(input_ids)
@@ -63,8 +63,8 @@ class LSTMModel(nn.Module):
         lstm_out = lstm_out[:, -1, :]
         # print('finish lstm slicing')
         output = self.fc(lstm_out)
-        print('output:')
-        print(output.shape)
+        # print('output:')
+        # print(output)
         # print('finish output')
 
         return output.squeeze(1)  # Squeeze the output to a single dimension
@@ -87,7 +87,8 @@ lstm_net = NeuralNetClassifier(
     optimizer=optimizer,
     batch_size=10,
     device=device,
-    train_split=None,
+    train_split=None, # Fixes numpy.exceptions.AxisError in training
+                      # Anyways, the data is assumed to be already split
 )
 lstm_pipeline = Pipeline([
     (
@@ -101,12 +102,27 @@ lstm_pipeline = Pipeline([
 ])
 print('Loaded lstm')
 
-bert_model = torch.load('./mbert_model.pt')
+"""
+Made this class to fix type format errors during
+ensemble prediction
+"""
+class BERTModel(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bert = torch.load('./mbert_model.pt')
+
+    def forward(self, input_ids, attention_mask):
+        x = self.bert(input_ids, attention_mask)
+        return x.logits
+
+bert_model = BERTModel()
 bert_model.eval()
 bert_net = NeuralNetClassifier(
     bert_model,
     batch_size=10,
     device=device,
+    train_split=None,
+    criterion=nn.CrossEntropyLoss
 )
 bert_pipeline = Pipeline([
     (
@@ -118,16 +134,23 @@ bert_pipeline = Pipeline([
         bert_net,
     ),
 ])
+bert_pipeline.set_params(
+    # tokenizer__add_special_tokens=True,
+    tokenizer__max_length=255,
+    # tokenizer__padding="max_length",
+    tokenizer__return_attention_mask=True,
+    tokenizer__return_tensors="pt",
+)
 print('Loaded mbert')
-print(bert_pipeline)
 
 ensemble = VotingClassifier(
     estimators=[
         ('nb', bayes_pipeline),
-        # ('bert', bert_pipeline),
+        ('bert', bert_pipeline),
         ('lstm', lstm_pipeline),
     ],
-    voting='hard',
+    voting='soft',
+    flatten_transform=False,
 )
 print(ensemble)
 
@@ -135,4 +158,7 @@ print('before fit')
 ensemble.fit(x_train, y_train)
 print('after fit')
 
-print(ensemble.predict("gago ka putangina bakla"))
+# print(ensemble.predict(x_train))
+
+# Currently doesn't work due to type issues
+print(ensemble.predict(["gago ka putangina bakla"]))
