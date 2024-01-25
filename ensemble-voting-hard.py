@@ -4,7 +4,7 @@ import torch.optim as optim
 from sklearn.ensemble import VotingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
-from skorch import NeuralNetBinaryClassifier
+from skorch import NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 import numpy as np
 import pandas as pd
@@ -78,15 +78,16 @@ print('Loaded tokenizer')
 
 lstm_model = torch.load("./lstm_model.pt")
 lstm_model.eval()
-criterion = nn.BCEWithLogitsLoss
+criterion = nn.L1Loss
 learning_rate = 0.000001
 optimizer = optim.Adam
-lstm_net = NeuralNetBinaryClassifier(
+lstm_net = NeuralNetClassifier(
     lstm_model,
     criterion=criterion,
     optimizer=optimizer,
     batch_size=10,
     device=device,
+    train_split=None,
 )
 lstm_pipeline = Pipeline([
     (
@@ -102,7 +103,7 @@ print('Loaded lstm')
 
 bert_model = torch.load('./mbert_model.pt')
 bert_model.eval()
-bert_net = NeuralNetBinaryClassifier(
+bert_net = NeuralNetClassifier(
     bert_model,
     batch_size=10,
     device=device,
