@@ -2,8 +2,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import BernoulliNB
 import numpy as np
 import pandas as pd
-import torch
-import sk2torch
 
 stop_words = open("./stopwords-tl.txt", "r").read().split('\n')
 
