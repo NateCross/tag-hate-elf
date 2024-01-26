@@ -125,7 +125,7 @@ class BERTModel(nn.Module):
 
 bert_model = BERTModel()
 bert_model.eval()
-bert_net = NeuralNetBinaryClassifier(
+bert_net = NeuralNetClassifier(
     bert_model,
     batch_size=10,
     device=device,
@@ -155,7 +155,7 @@ ensemble = VotingClassifier(
     estimators=[
         ('nb', bayes_pipeline),
         # Commenting out bert first since it takes very long
-        # ('bert', bert_pipeline),
+        ('bert', bert_pipeline),
         ('lstm', lstm_pipeline),
     ],
     voting='hard',
@@ -170,4 +170,7 @@ print('after fit')
 # print(ensemble.predict(x_train))
 
 # Currently doesn't work due to type issues
-print(ensemble.predict(["gago ka putangina bakla"]))
+print(ensemble.predict([
+    "mahal kita",
+    "goddamn i feel like a black man eating this chicken",
+]))
