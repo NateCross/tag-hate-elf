@@ -4,7 +4,7 @@ import torch.optim as optim
 from sklearn.ensemble import VotingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
-from skorch import NeuralNetClassifier
+from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 import numpy as np
 import pandas as pd
@@ -60,6 +60,7 @@ class LSTMModel(nn.Module):
         # print('finish embedding')
         lstm_out, _ = self.lstm(input_ids)
         # print('finish lstm')
+        # print(lstm_out)
         lstm_out = lstm_out[:, -1, :]
         # print('finish lstm slicing')
         output = self.fc(lstm_out)
@@ -67,7 +68,8 @@ class LSTMModel(nn.Module):
         # print(output)
         # print('finish output')
 
-        return output.squeeze(1)  # Squeeze the output to a single dimension
+        return output
+        # return output.squeeze(1)  # Squeeze the output to a single dimension
 
 
 # Initialize the model, loss function, and optimizer
@@ -81,7 +83,7 @@ lstm_model.eval()
 criterion = nn.L1Loss
 learning_rate = 0.000001
 optimizer = optim.Adam
-lstm_net = NeuralNetClassifier(
+lstm_net = NeuralNetBinaryClassifier(
     lstm_model,
     criterion=criterion,
     optimizer=optimizer,
@@ -102,6 +104,12 @@ lstm_pipeline = Pipeline([
 ])
 print('Loaded lstm')
 
+# lstm_pipeline.fit(x_train, y_train)
+# print(lstm_pipeline.predict(x_train))
+# print(lstm_pipeline.predict(['putangina mo', 'gago ka bakla ka']))
+
+# exit()
+
 """
 Made this class to fix type format errors during
 ensemble prediction
@@ -117,7 +125,7 @@ class BERTModel(nn.Module):
 
 bert_model = BERTModel()
 bert_model.eval()
-bert_net = NeuralNetClassifier(
+bert_net = NeuralNetBinaryClassifier(
     bert_model,
     batch_size=10,
     device=device,
@@ -146,11 +154,12 @@ print('Loaded mbert')
 ensemble = VotingClassifier(
     estimators=[
         ('nb', bayes_pipeline),
-        ('bert', bert_pipeline),
+        # Commenting out bert first since it takes very long
+        # ('bert', bert_pipeline),
         ('lstm', lstm_pipeline),
     ],
-    voting='soft',
-    flatten_transform=False,
+    voting='hard',
+    # flatten_transform=False,
 )
 print(ensemble)
 
