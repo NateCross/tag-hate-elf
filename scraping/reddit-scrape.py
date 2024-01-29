@@ -1,11 +1,13 @@
-import praw
-import pandas as pd
-import argparse
-from typing import TypedDict
-from datetime import datetime
+# Import necessary libraries
+import praw # Reddit API wrapper
+import pandas as pd # Data manipulation library
+import argparse # Command-line parsing library
+from typing import TypedDict # Type hinting for data dictionaries
+from datetime import datetime   # Date & time handling
 
-import prawcore
+import prawcore # PRAW core exceptions
 
+# Define a type for rows of data to ensure consistent data structure
 class DataRow(TypedDict):
     id: str
     author: str
@@ -17,14 +19,17 @@ class DataRow(TypedDict):
     submission_text: str
 
 
+# Setup command-line argument parsing
 parser = argparse.ArgumentParser()
-parser.add_argument("subreddit_name")
-parser.add_argument("subreddit_filter")
+parser.add_argument("subreddit_name")   # Subreddit name argument
+parser.add_argument("subreddit_filter") # Filter type argument (e.g., top, hot, controversial)
 args = parser.parse_args()
 
-# Options
+# Set default subreddit name & limit for data collection
 SUBREDDIT_NAME = args.subreddit_name if args.subreddit_name else "CasualPH"
 LIMIT = 1000
+
+# Define blacklists for authors & comment bodies to exclude from the data
 AUTHOR_BLACKLIST = [
     'AutoModerator',
 ]
@@ -33,55 +38,60 @@ BODY_BLACKLIST = [
     '[removed]',
 ]
 
+# Define options for subreddit fetching, mainly the limit
 OPTIONS = {
     'limit': LIMIT,
 }
 
-# Constants
-CURRENT_DATETIME = datetime.today().strftime("%Y%m%d-%H%M%S")
-FILENAME = f'data-{SUBREDDIT_NAME}-{CURRENT_DATETIME}-{args.subreddit_filter}.csv'
+# Constants for file naming
+CURRENT_DATETIME = datetime.today().strftime("%Y%m%d-%H%M%S")   # Current date and time for filename
+FILENAME = f'data-{SUBREDDIT_NAME}-{CURRENT_DATETIME}-{args.subreddit_filter}.csv'  # Filename format
 
 if __name__ == "__main__":
+    # Initialize PRAW Reddit instance with credentials & user agent
     reddit = praw.Reddit(
         client_id="YJvLI6W6NMduk55T10M6Qw",
         client_secret="RP9c8mfnX2OGF2t6aHQKHhvxLV4UUg",
         user_agent="linux:praw:v7.7.2 (by u/Elairion)",
-        ratelimit_seconds=6000, # Give heavy allowance for rate limits
+        ratelimit_seconds=6000, # Give heavy allowance for rate limits to avoid TooManyRequests error
     )
 
-    data_collection: list[DataRow] = []
+    data_collection: list[DataRow] = [] # List to hold all DataRow items
 
+    # Get subreddit instance from PRAW
     subreddit_instance = reddit.subreddit(SUBREDDIT_NAME)
 
+    # Select the subreddit section based on the filter argument (top, controversial, hot)
     result = {
         'top': subreddit_instance.top(**OPTIONS),
         'controversial': subreddit_instance.controversial(**OPTIONS),
         'hot': subreddit_instance.hot(**OPTIONS),
     }[args.subreddit_filter]
 
-    progress = 0
+    progress = 0    # Track the number of processed posts
 
     try:
-        for submission in result:
+        for submission in result:   # Iterate through submissions in the selected subreddit section
             progress += 1
             print(f"POST: {progress} / {LIMIT}")
 
-            submission.comments.replace_more(limit=None)
-            comments = submission.comments.list()
+            submission.comments.replace_more(limit=None)    # Load all comments by replacing "MoreComments"
+            comments = submission.comments.list()   # Flatten the comment tree into a list
 
-            comments_progress = 0
-            comments_num = len(comments)
+            comments_progress = 0   # Track the number of processed comments
+            comments_num = len(comments)    # Total number of comments for the current submission
 
-            for comment in comments:
+            for comment in comments:    # Iterate through each comment
                 comments_progress += 1
-                print(f"COMMENTS: {comments_progress} / {comments_num}")
+                print(f"COMMENTS: {comments_progress} / {comments_num}")    # Log comment processing progress
 
+                # Get author name, or set as empty string if not available
                 author = (
                     comment.author.name 
                     if isinstance(comment.author, praw.models.Redditor) 
                     else ''
                 )
-                body = comment.body
+                body = comment.body # Comment text
                 word_count = len(body.split())
 
                 # Skip comment if the author is in the blacklist
@@ -105,12 +115,13 @@ if __name__ == "__main__":
                         comment.created_utc
                     ).strftime('%Y-%m-%d %H:%M:%S'),
                 }
-                data_collection.append(data_row)
+                data_collection.append(data_row)    # Add the data row to the collection
     except prawcore.exceptions.TooManyRequests:
-        pass
+        pass    # Handle rate limit exceptions gracefully
 
+    # Convert the list of DataRow dictionaries to a Pandas DataFrame
     data_frame = pd.DataFrame(data_collection)
 
-    data_frame.to_csv(FILENAME)
+    data_frame.to_csv(FILENAME) # Save the DataFrame to a CSV file
 
-    print("Saved data")
+    print("Saved data") # Log completion
