@@ -44,14 +44,6 @@ import re
 # Function to remove URLs from a text string and replace them with '[LINK]'
 def remove_urls(text):
     url_pattern = re.compile(
-			r'(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})(\S*)\/?',
-			re.IGNORECASE
-		)
-    return url_pattern.sub('[LINK]', text)
-
-# Alternative version of the function to remove URLs
-def remove_urls_v2(text):
-    url_pattern = re.compile(
 			r'http\S+',
 			re.IGNORECASE
 		)
@@ -70,27 +62,37 @@ This script is meant to filter out non-Tagalog or Taglish text in a csv
 made from running `reddit-scrape.py`
 """
 
-# Set the threshold for considering a text as Tagalog
-TAGALOG_THRESHOLD = 0.75
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("csv_filename") # Command line argument for the CSV filename
+    parser.add_argument(
+        "csv_filename",
+        help="The csv to filter",
+    ) # Command line argument for the CSV filename
+    parser.add_argument(
+        "tagalog_threshold",
+        help="Threshold for amount of Tagalog present, float from 0.0 to 1.0",
+        type=float,
+        default=0.5,
+    ) # Command line argument for the CSV filename
     args = parser.parse_args()
 
-    csv_filename = args.csv_filename
+    CSV_FILENAME = args.csv_filename
+# Set the threshold for considering a text as Tagalog
+    TAGALOG_THRESHOLD = args.tagalog_threshold if args.tagalog_threshold else 0.50
+
 
     # Define the languages to be considered by the language detector
     languages = [Language.ENGLISH, Language.TAGALOG]
+
 
     # Initialize the language detector
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
 
     # Read the CSV file
-    csv = pd.read_csv(csv_filename, lineterminator='\n')
+    csv = pd.read_csv(CSV_FILENAME, lineterminator='\n')
 
     filipino_phrases = 0    # Counter for Filipino phrases
-    length = len(list(csv.itertuples()))    #Total number of rows in the CSV
+    length = len(list(csv.itertuples()))    # Total number of rows in the CSV
 
     progress = 0    # To track progress
     for row in csv.itertuples():    # Iterate over each row in the CSV
@@ -101,7 +103,7 @@ if __name__ == "__main__":
 
         # Clean the text by removing markdown, URLs, & usernames
         text = unmark(text)
-        text = remove_urls_v2(text)
+        text = remove_urls(text)
         text = remove_usernames(text)
 
         # Compute the confidence of the text being Tagalog
@@ -119,7 +121,7 @@ if __name__ == "__main__":
     print(filipino_phrases) # Print the total number of Filipino phrases found
 
     # Save the filtered CSV
-    split_filename = csv_filename.split(".")
+    split_filename = CSV_FILENAME.split(".")
 
     csv.to_csv(
         f"{split_filename[0]}-filtered.csv"
