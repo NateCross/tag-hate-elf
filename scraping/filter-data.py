@@ -79,6 +79,9 @@ if __name__ == "__main__":
     CSV_FILENAME = args.csv_filename
 # Set the threshold for considering a text as Tagalog
     TAGALOG_THRESHOLD = args.tagalog_threshold if args.tagalog_threshold else 0.50
+    if not (0.00 <= TAGALOG_THRESHOLD <= 1.00):
+        print("ERROR: Tagalog threshold must be between 0.0 and 1.0")
+        exit(1)
 
 
     # Define the languages to be considered by the language detector
@@ -89,7 +92,11 @@ if __name__ == "__main__":
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
 
     # Read the CSV file
-    csv = pd.read_csv(CSV_FILENAME, lineterminator='\n')
+    try:
+        csv = pd.read_csv(CSV_FILENAME, lineterminator='\n')
+    except FileNotFoundError:
+        print("ERROR: File not found")
+        exit(1)
 
     filipino_phrases = 0    # Counter for Filipino phrases
     length = len(list(csv.itertuples()))    # Total number of rows in the CSV

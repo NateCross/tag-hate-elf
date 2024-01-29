@@ -5,7 +5,8 @@ import argparse # Command-line parsing library
 from typing import TypedDict # Type hinting for data dictionaries
 from datetime import datetime   # Date & time handling
 
-import prawcore # PRAW core exceptions
+import prawcore
+from prawcore.exceptions import Redirect, RequestException # PRAW core exceptions
 
 # Define a type for rows of data to ensure consistent data structure
 class DataRow(TypedDict):
@@ -131,6 +132,12 @@ if __name__ == "__main__":
                 data_collection.append(data_row)    # Add the data row to the collection
     except prawcore.exceptions.TooManyRequests:
         pass    # Handle rate limit exceptions gracefully
+    except Redirect:
+        print("ERROR: Request redirected. Please check subreddit name and try again")
+        exit(1)
+    except RequestException:
+        print("ERROR: Request exception. Please check subreddit name and try again")
+        exit(1)
 
     # Convert the list of DataRow dictionaries to a Pandas DataFrame
     data_frame = pd.DataFrame(data_collection)
