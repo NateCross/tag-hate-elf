@@ -158,7 +158,7 @@ ensemble = StackingClassifier(
     estimators=[
         ('nb', bayes_pipeline),
         # Commenting out bert first since it takes very long
-        # ('bert', bert_pipeline),
+        ('bert', bert_pipeline),
         ('lstm', lstm_pipeline),
     ],
     final_estimator=logisticRegression,

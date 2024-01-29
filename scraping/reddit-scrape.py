@@ -21,13 +21,26 @@ class DataRow(TypedDict):
 
 # Setup command-line argument parsing
 parser = argparse.ArgumentParser()
-parser.add_argument("subreddit_name")   # Subreddit name argument
-parser.add_argument("subreddit_filter") # Filter type argument (e.g., top, hot, controversial)
+parser.add_argument(
+    "subreddit_name",
+    help="The name of the subreddit to scrape",
+)   # Subreddit name argument
+parser.add_argument(
+    "subreddit_filter",
+    help="The filter to be used on the subreddit",
+    choices=[
+        "top",
+        "hot",
+        "controversial",
+    ],
+) # Filter type argument (e.g., top, hot, controversial)
 args = parser.parse_args()
 
 # Set default subreddit name & limit for data collection
-SUBREDDIT_NAME = args.subreddit_name if args.subreddit_name else "CasualPH"
-LIMIT = 1000
+SUBREDDIT_NAME = args.subreddit_name if args.subreddit_name else "Philippines"
+LIMIT = 1000    # Reddit api queries only return a hard maximum of 1000
+                # As such, even if the limit is increased, it can
+#               # never go over 1000 entries even in the main site
 
 # Define blacklists for authors & comment bodies to exclude from the data
 AUTHOR_BLACKLIST = [

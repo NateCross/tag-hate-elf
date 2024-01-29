@@ -16,7 +16,7 @@ from io import StringIO
 # Function to convert markdown formatted text to plain text
 def unmark_element(element, stream=None):
     if stream is None:
-        stream = StringIO() # Create a new StriingIO if none is provided
+        stream = StringIO() # Create a new StringIO if none is provided
     if element.text:
         stream.write(element.text)  # Write the text of the current element to the stream
     for sub in element:
