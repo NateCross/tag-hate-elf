@@ -1,7 +1,7 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
-from os.path import realpath, dirname
+from os.path import dirname
 
 BayesModel = BernoulliNB()
 """
