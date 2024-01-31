@@ -4,8 +4,8 @@ lstm_trainor
 datasets/output_100.csv
 datasets/output.csv
 lstm_model
-__pycache__/
-src/__pycache__/
+__pycache__/*
+src/__pycache__/*
 scraping/data-*
 *.pt
 *.pickle
