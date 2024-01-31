@@ -2,6 +2,7 @@ from sklearn.pipeline import Pipeline
 from torch import nn, optim, device, cuda
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
+from skorch.callbacks import Checkpoint
 
 _device = device("cuda" if cuda.is_available() else "cpu")
 
@@ -29,12 +30,21 @@ Criterion = nn.L1Loss
 
 Optimizer = optim.Adam
 
+_checkpoint = Checkpoint(
+    monitor='valid_acc_best',
+    f_params='lstm_train.pt',
+)
+"""
+Checkpoint is used to save and load training progress
+"""
+
 LstmNet = NeuralNetBinaryClassifier(
     LstmModel,
     criterion=Criterion,
     optimizer=Optimizer,
     batch_size=10,
     device=_device,
+    callbacks=[_checkpoint],
     train_split=None, # Fixes numpy.exceptions.AxisError in training
                       # Anyways, data is assumed to be already split
 )

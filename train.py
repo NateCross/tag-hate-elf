@@ -109,6 +109,22 @@ def get_prediction_results(X_test: list, y_test: list, ensemble):
         accuracy = accuracy_score(y_test, y_pred)
         return accuracy
 
+def save_trained_model(ensemble, filename = "Ensemble.pt"):
+    """
+    Saves the ensemble to disk.
+    We use save_params for portability, but we must
+    ensure to initialize the ensemble before loading params
+    when we predict.
+    The behavior of save_params is further documented here: 
+    https://skorch.readthedocs.io/en/stable/user/save_load.html
+
+    Args:
+        ensemble (VotingClassifier | StackingClassifier):
+            A trained hard voting, soft voting, or stacking 
+            ensemble from scikit-learn
+    """
+    ensemble.save_params(f_params=filename)
+
 if __name__ == "__main__":
     args = parse_arguments()
 
@@ -133,3 +149,9 @@ if __name__ == "__main__":
     accuracy = get_prediction_results(X_test, y_test, ENSEMBLE)
 
     print(f"Accuracy: {accuracy}")
+
+    save_trained_model(ENSEMBLE)
+
+    print("Saved ensemble to disk")
+
+
