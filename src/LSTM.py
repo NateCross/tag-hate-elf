@@ -40,6 +40,11 @@ Checkpoint is used to save and load training progress
 
 LstmNet = NeuralNetBinaryClassifier(
     LstmModel,
+    ### TODO: Revise LSTM and the options here
+    module__input_size=len(BertTokenizer.vocabulary_),
+    module__hidden_size=128,
+    module__output_size=1,
+    module__num_layers=2,
     criterion=Criterion,
     optimizer=Optimizer,
     batch_size=10,

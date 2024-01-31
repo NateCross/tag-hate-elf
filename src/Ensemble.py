@@ -17,7 +17,7 @@ HardVotingEnsemble = VotingClassifier(
 
 SoftVotingEnsemble = VotingClassifier(
     estimators=_estimators,
-    voting='hard',
+    voting='soft',
 )
 
 StackingEnsemble = StackingClassifier(

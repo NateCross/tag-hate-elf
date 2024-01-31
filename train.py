@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from .src import Ensemble
+from src import Ensemble
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -68,8 +68,8 @@ def get_train_test_split(data_frame: pd.DataFrame):
         y_train
         y_test
     """
-    text = data_frame['text']
-    labels = data_frame['label']
+    text = data_frame.values[0]
+    labels = data_frame.values[1]
 
     return train_test_split(
         text, 
@@ -91,6 +91,7 @@ def train_ensemble(X_train: list, y_train: list, ensemble):
     """
     seed_random_number_generators()
     ensemble.fit(X_train, y_train)
+    return ensemble
 
 def get_prediction_results(X_test: list, y_test: list, ensemble):
     """
@@ -142,9 +143,9 @@ if __name__ == "__main__":
         'hard': Ensemble.HardVotingEnsemble,
         'soft': Ensemble.SoftVotingEnsemble,
         'stacking': Ensemble.StackingEnsemble,
-    }[args.ensemble_method]
+    }[ENSEMBLE_METHOD]
 
-    train_ensemble(X_train, y_train, ENSEMBLE)
+    ENSEMBLE = train_ensemble(X_train, y_train, ENSEMBLE)
 
     accuracy = get_prediction_results(X_test, y_test, ENSEMBLE)
 

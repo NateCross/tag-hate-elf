@@ -3,6 +3,7 @@ from transformers import BertForSequenceClassification
 from torch import nn, device, cuda
 from skorch import NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
+from skorch.callbacks import Checkpoint
 
 _device = device("cuda" if cuda.is_available() else "cpu")
 
@@ -50,7 +51,7 @@ BertNet = NeuralNetClassifier(
 
 BertPipeline = Pipeline([
     ('tokenizer', BertTokenizer),
-    ('bert', BertModel),
+    ('bert', BertNet),
 ])
 
 BertPipeline.set_params(
