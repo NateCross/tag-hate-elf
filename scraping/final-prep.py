@@ -40,10 +40,35 @@ if __name__ == "__main__":
     # Drop all rows with missing or non-number values
     csv = csv[pd.to_numeric(csv['label'], errors='coerce').notnull()]
 
-    # Save the filtered CSV
+    # Extract X and y from the csv, this allows the data to be
+    # undersampled
+    X = csv.iloc[:, 0]
+    y = csv.iloc[:, 1]
+
+    # Reshape X into a 2D array to be compatible with the
+    # undersampler
+    X = X.values.reshape(-1, 1)
+
+    # Initialize the random undersampler
+    sampler = RandomUnderSampler(random_state=42)
+
+    # Undersample the data
+    X_resampled, y_resampled = sampler.fit_resample(X, y)
+
+    # Flatten X again after resampling so it returns to
+    # a 1D list
+    X_resampled = X_resampled.flatten()
+
+    # Make a new dataframe with the resampled data
+    final_csv = pd.DataFrame(
+        list(zip(X_resampled, y_resampled)),
+        columns=['text', 'label']
+    )
+
+    # Save the filtered and resampled CSV
     split_filename = CSV_FILENAME.split(".")
 
-    csv.to_csv(
+    final_csv.to_csv(
         f"{split_filename[0]}-final.csv",
         index=False,    # Prevent index from being saved as column
     )
