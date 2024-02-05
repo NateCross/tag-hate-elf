@@ -106,16 +106,12 @@ if __name__ == "__main__":
                     else ''
                 )
                 body = comment.body # Comment text
-                word_count = len(body.split())
 
                 # Skip comment if the author is in the blacklist
                 if author in AUTHOR_BLACKLIST: continue
 
                 # Skip comment if body is in the blacklist
                 if body in BODY_BLACKLIST: continue
-
-                # Filter out comments with two words or less
-                # if word_count <= 2: continue
 
                 data_row: DataRow = {
                     'id': comment.id,
