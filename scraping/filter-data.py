@@ -72,7 +72,7 @@ if __name__ == "__main__":
         "tagalog_threshold",
         help="Threshold for amount of Tagalog present, float from 0.0 to 1.0",
         type=float,
-        default=0.5,
+        default=0.50,
     ) # Command line argument for the CSV filename
     args = parser.parse_args()
 
@@ -97,6 +97,21 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print("ERROR: File not found")
         exit(1)
+
+    # Drop unnecessary columns, leaving only the columns
+    # eligible for annotation and training
+    csv = csv.drop(columns=[
+        'id',
+        'subreddit',
+        'author',
+        'score',
+        'timestamp',
+        'Unnamed: 0',   # The unnamed column representing index
+                        # in the csv
+    ])
+
+    # Add a blank 'label' column for annotation
+    csv['label'] = ''
 
     filipino_phrases = 0    # Counter for Filipino phrases
     length = len(list(csv.itertuples()))    # Total number of rows in the CSV
@@ -125,11 +140,12 @@ if __name__ == "__main__":
         else:
             csv.drop(row.Index, inplace=True)   # Drop rows that don't meet the threshold
 
-    print(filipino_phrases) # Print the total number of Filipino phrases found
+    print(f"Total: {filipino_phrases}") # Print the total number of Filipino phrases found
 
     # Save the filtered CSV
     split_filename = CSV_FILENAME.split(".")
 
     csv.to_csv(
-        f"{split_filename[0]}-filtered.csv"
+        f"{split_filename[0]}-filtered.csv",
+        index=False,    # Prevent index from being saved as column
     )
