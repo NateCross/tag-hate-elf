@@ -49,7 +49,7 @@ Download Python through their official Website - [Python](https://www.python.org
 ## Install Pytorch:
 
 ```
-pip install torch torchvision torchaudio
+pip install torch torchvision torchaudio imbalanced-learn
 ```
 
 # Transformers
