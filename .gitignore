@@ -13,5 +13,6 @@ scraping/data-*
 LSTMRevisions
 .env
 scraping/.env
+notebook/.env
 
 **/*.ipynb_checkpoints/
