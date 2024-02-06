@@ -1,7 +1,6 @@
 # Import necessary libraries
 import praw # Reddit API wrapper
 import pandas as pd # Data manipulation library
-import argparse # Command-line parsing library
 from typing import TypedDict # Type hinting for data dictionaries
 from datetime import datetime   # Date & time handling
 
@@ -19,29 +18,10 @@ class DataRow(TypedDict):
     submission_name: str
     submission_text: str
 
-
-# Setup command-line argument parsing
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "subreddit_name",
-    help="The name of the subreddit to scrape",
-)   # Subreddit name argument
-parser.add_argument(
-    "subreddit_filter",
-    help="The filter to be used on the subreddit",
-    choices=[
-        "top",
-        "hot",
-        "controversial",
-    ],
-) # Filter type argument (e.g., top, hot, controversial)
-args = parser.parse_args()
-
-# Set default subreddit name & limit for data collection
-SUBREDDIT_NAME = args.subreddit_name if args.subreddit_name else "Philippines"
-LIMIT = 1000    # Reddit api queries only return a hard maximum of 1000
-                # As such, even if the limit is increased, it can
-#               # never go over 1000 entries even in the main site
+# Directly set the subreddit name & filter here
+SUBREDDIT_NAME = 'Philippines'  # Replace 'your_subreddit_name' with the actual subreddit name
+SUBREDDIT_FILTER = 'top'        # Choose from 'top', 'hot', 'controversial'
+LIMIT = 1                    # Reddit API queries only return a hard maximum of 1000
 
 # Define blacklists for authors & comment bodies to exclude from the data
 AUTHOR_BLACKLIST = [
@@ -59,7 +39,7 @@ OPTIONS = {
 
 # Constants for file naming
 CURRENT_DATETIME = datetime.today().strftime("%Y%m%d-%H%M%S")   # Current date and time for filename
-FILENAME = f'data-{SUBREDDIT_NAME}-{CURRENT_DATETIME}-{args.subreddit_filter}.csv'  # Filename format
+FILENAME = f'data-{SUBREDDIT_NAME}-{CURRENT_DATETIME}-{SUBREDDIT_FILTER}.csv'  # Filename format
 
 if __name__ == "__main__":
     # Initialize PRAW Reddit instance with credentials & user agent
@@ -80,7 +60,7 @@ if __name__ == "__main__":
         'top': subreddit_instance.top(**OPTIONS),
         'controversial': subreddit_instance.controversial(**OPTIONS),
         'hot': subreddit_instance.hot(**OPTIONS),
-    }[args.subreddit_filter]
+    }[SUBREDDIT_FILTER]
 
     progress = 0    # Track the number of processed posts
 
