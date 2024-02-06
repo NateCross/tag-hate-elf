@@ -1,28 +1,26 @@
+"""
+This script is to use for the final preparation before training
+Make sure to scrape for reddit with reddit-scrape.py,
+then run the filter-data.py to prepare for annotation,
+and finally this one
+"""
+import argparse
 import pandas as pd
 from imblearn.under_sampling import RandomUnderSampler
 
-# Directly set the CSV filename here
-CSV_FILENAME = 'testingthis.csv'  # Replace with the actual path to your CSV file
-
-# Function to preprocess the header of the 4th column to remove '\r'
-def preprocess_header(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        headers = file.readline().strip().split(',')  # Read the first line to get headers
-        
-    # Remove '\r' characters from the 4th header (index 3 since indexing starts from 0)
-    if len(headers) >= 4:
-        headers[3] = headers[3].replace('\r', '')
-
-    return headers
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "csv_filename",
+        help="The csv to filter",
+    ) # Command line argument for the CSV filename
+    args = parser.parse_args()
 
-    # Preprocess the headers
-    headers = preprocess_header(CSV_FILENAME)
+    CSV_FILENAME = args.csv_filename
 
-    # Read the CSV file with the corrected headers, skipping the original header row
+    # Read the CSV file
     try:
-        csv = pd.read_csv(CSV_FILENAME, lineterminator='\n', header=None, skiprows=1, names=headers)
+        csv = pd.read_csv(CSV_FILENAME, lineterminator='\n')
     except FileNotFoundError:
         print("ERROR: File not found")
         exit(1)
@@ -71,15 +69,19 @@ if __name__ == "__main__":
     X_resampled = X_resampled.flatten()
 
     # Make a new dataframe with the resampled data
+    # These columns have the same name as the 
+    # 2016 and 2022 PH Hate Speech dataset
     final_csv = pd.DataFrame(
         list(zip(X_resampled, y_resampled)),
         columns=['text', 'label']
     )
 
     # Save the filtered and resampled CSV
+    split_filename = CSV_FILENAME.split(".")
+
     final_csv.to_csv(
-        CSV_FILENAME.replace('.csv', '-final.csv'),
-        index=False,    # Prevent index from being saved as a column
+        f"{split_filename[0]}-final.csv",
+        index=False,    # Prevent index from being saved as column
     )
 
     print("Finished")
