@@ -11,3 +11,5 @@ scraping/data-*
 **/*.pt
 *.pickle
 LSTMRevisions
+.env
+scraping/.env
