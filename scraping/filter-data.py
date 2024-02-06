@@ -1,127 +1,70 @@
-# Import necessary modules
-from lingua import Language, LanguageDetectorBuilder # For language detection
-import argparse # For parsing command line arguments
-import pandas as pd # For handling CSV files
-
-"""
-Credit: https://stackoverflow.com/questions/761824/python-how-to-convert-markdown-formatted-text-to-text
-"""
-
-
-# Markdown to plain text conversion utility
+import pandas as pd
+from lingua import Language, LanguageDetectorBuilder  # Placeholder for actual import if using a different library
 from markdown import Markdown
 from io import StringIO
+import re
 
+# Directly set the CSV filename and Tagalog threshold in the script
+CSV_FILENAME = 'testing.csv'  # Replace with the actual path to your CSV file
+TAGALOG_THRESHOLD = 0.5  # Set your desired threshold for Tagalog content
 
 # Function to convert markdown formatted text to plain text
 def unmark_element(element, stream=None):
     if stream is None:
-        stream = StringIO() # Create a new StringIO if none is provided
+        stream = StringIO()
     if element.text:
-        stream.write(element.text)  # Write the text of the current element to the stream
+        stream.write(element.text)
     for sub in element:
-        unmark_element(sub, stream) # Recursively process all child elements
+        unmark_element(sub, stream)
     if element.tail:
-        stream.write(element.tail)  # Write the tail text of the current element to the stream
-    return stream.getvalue()    # Return the entire content of the stream as a string
-
+        stream.write(element.tail)
+    return stream.getvalue()
 
 # Patching the Markdown library to add a plain text output format
 Markdown.output_formats["plain"] = unmark_element
 __md = Markdown(output_format="plain")
 __md.stripTopLevelTags = False
 
-
 # Wrapper function to convert markdown text to plain text
 def unmark(text):
     return __md.convert(text)
 
-"""
-Credit: https://wisecode.blog/python-string-remove-urls
-"""
-import re
-
 # Function to remove URLs from a text string and replace them with '[LINK]'
 def remove_urls(text):
-    url_pattern = re.compile(
-			r'http\S+',
-			re.IGNORECASE
-		)
+    url_pattern = re.compile(r'http\S+', re.IGNORECASE)
     return url_pattern.sub('[LINK]', text)
 
 # Function to remove Reddit usernames from a text string and replace them with '[USERNAME]'
 def remove_usernames(text):
-    username_pattern = re.compile(
-        r"/?u/[A-Za-z0-9_-]+",
-        re.IGNORECASE,
-    )
+    username_pattern = re.compile(r"/?u/[A-Za-z0-9_-]+", re.IGNORECASE)
     return username_pattern.sub('[USERNAME]', text)
 
-"""
-This script is meant to filter out non-Tagalog or Taglish text in a csv
-made from running `reddit-scrape.py`
-"""
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "csv_filename",
-        help="The csv to filter",
-    ) # Command line argument for the CSV filename
-    parser.add_argument(
-        "tagalog_threshold",
-        help="Threshold for amount of Tagalog present, float from 0.0 to 1.0",
-        type=float,
-        default=0.50,
-    ) # Command line argument for the CSV filename
-    args = parser.parse_args()
-
-    CSV_FILENAME = args.csv_filename
-# Set the threshold for considering a text as Tagalog
-    TAGALOG_THRESHOLD = args.tagalog_threshold if args.tagalog_threshold else 0.50
+    # Ensure the Tagalog threshold is within the valid range
     if not (0.00 <= TAGALOG_THRESHOLD <= 1.00):
         print("ERROR: Tagalog threshold must be between 0.0 and 1.0")
         exit(1)
 
-
-    # Define the languages to be considered by the language detector
+    # Initialize the language detector with the specified languages
     languages = [Language.ENGLISH, Language.TAGALOG]
-
-
-    # Initialize the language detector
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
 
     # Read the CSV file
     try:
-        csv = pd.read_csv(CSV_FILENAME, lineterminator='\n')
+        csv_data = pd.read_csv(CSV_FILENAME, lineterminator='\n')
     except FileNotFoundError:
         print("ERROR: File not found")
         exit(1)
 
-    # Drop unnecessary columns, leaving only the columns
-    # eligible for annotation and training
-    csv = csv.drop(columns=[
-        'id',
-        'subreddit',
-        'author',
-        'score',
-        'timestamp',
-        'Unnamed: 0',   # The unnamed column representing index
-                        # in the csv
-    ])
+    # Drop unnecessary columns
+    csv_data = csv_data.drop(columns=['id', 'subreddit', 'author', 'score', 'timestamp', 'Unnamed: 0'])
 
     # Add a blank 'label' column for annotation
-    csv['label'] = ''
+    csv_data['label'] = ''
 
-    filipino_phrases = 0    # Counter for Filipino phrases
-    length = len(list(csv.itertuples()))    # Total number of rows in the CSV
-
-    progress = 0    # To track progress
-    for row in csv.itertuples():    # Iterate over each row in the CSV
-        # Some of the data may end up being recognized as floats
-        # so we should convert to str to be properly filtered
-        if not isinstance(row.body, str): text = str(row.body)
-        else: text = row.body
+    filipino_phrases = 0  # Counter for Filipino phrases
+    for row in csv_data.itertuples():  # Iterate over each row in the CSV
+        text = str(row.body)  # Convert to string to handle non-string data
 
         # Clean the text by removing markdown, URLs, & usernames
         text = unmark(text)
@@ -130,22 +73,18 @@ if __name__ == "__main__":
 
         # Compute the confidence of the text being Tagalog
         result = detector.compute_language_confidence(text, Language.TAGALOG)
-        progress += 1
-        print(f"{progress} / {length}") # Print the current progress
-
+        
         # If the confidence is above the threshold, consider it a Filipino phrase
         if result >= TAGALOG_THRESHOLD:
             filipino_phrases += 1
-            csv.at[row.Index, 'body'] = text    # Update the text in the CSV
+            csv_data.at[row.Index, 'body'] = text  # Update the text in the CSV
         else:
-            csv.drop(row.Index, inplace=True)   # Drop rows that don't meet the threshold
+            csv_data.drop(row.Index, inplace=True)  # Drop rows that don't meet the threshold
 
-    print(f"Total: {filipino_phrases}") # Print the total number of Filipino phrases found
+    print(f"Total: {filipino_phrases}")  # Print the total number of Filipino phrases found
 
     # Save the filtered CSV
-    split_filename = CSV_FILENAME.split(".")
+    filtered_filename = CSV_FILENAME.replace('.csv', '-filtered.csv')
+    csv_data.to_csv(filtered_filename, index=False)  # Prevent index from being saved as a column
 
-    csv.to_csv(
-        f"{split_filename[0]}-filtered.csv",
-        index=False,    # Prevent index from being saved as column
-    )
+    print(f"Filtered data saved to {filtered_filename}")
