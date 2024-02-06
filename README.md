@@ -44,22 +44,6 @@ brew install python3
 
 Download Python through their official Website - [Python](https://www.python.org/downloads/)
 
-### Pytorch
-
-## Install Pytorch:
-
-```
-pip install torch torchvision torchaudio imbalanced-learn
-```
-
-# Transformers
-
-## Install Pytorch:
-
-```
-pip install transformers
-```
-
 ## 2. Set-up the environment
 
 ```
@@ -78,7 +62,12 @@ python -m venv <venv>
 
 ```
 source venv/bin/activate
+
 ```
+
+## 4. Install dependencies
+
+`pip install -r requirements.txt`
 
 ---
 
