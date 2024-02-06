@@ -31,12 +31,6 @@ if __name__ == "__main__":
         'submission_text',
     ])
 
-    # Rename body column to be the same as the
-    # 2016 and 2022 PH Hate Speech dataset
-    csv = csv.rename(columns={
-        'body': 'text'
-    })
-
     # Drop all rows with missing or non-number values
     csv = csv[pd.to_numeric(csv['label'], errors='coerce').notnull()]
 
@@ -53,13 +47,19 @@ if __name__ == "__main__":
     sampler = RandomUnderSampler(random_state=42)
 
     # Undersample the data
-    X_resampled, y_resampled = sampler.fit_resample(X, y)
+    try:
+        X_resampled, y_resampled = sampler.fit_resample(X, y)
+    except ValueError:
+        print("ERROR: Insufficient data")
+        exit()
 
     # Flatten X again after resampling so it returns to
     # a 1D list
     X_resampled = X_resampled.flatten()
 
     # Make a new dataframe with the resampled data
+    # These columns have the same name as the 
+    # 2016 and 2022 PH Hate Speech dataset
     final_csv = pd.DataFrame(
         list(zip(X_resampled, y_resampled)),
         columns=['text', 'label']
