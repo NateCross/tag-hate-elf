@@ -1,7 +1,6 @@
 # Import necessary libraries
 import praw # Reddit API wrapper
 import pandas as pd # Data manipulation library
-import argparse # Command-line parsing library
 from typing import TypedDict # Type hinting for data dictionaries
 from datetime import datetime   # Date & time handling
 
