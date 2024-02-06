@@ -29,10 +29,21 @@ if __name__ == "__main__":
     csv = csv.drop(columns=[
         'submission_name',
         'submission_text',
+        '\r',   # Windows may append \r and it becomes considered
+                # as its own column. This prevents that
     ])
 
-    # Drop all rows with missing or non-number values
-    csv = csv[pd.to_numeric(csv['label'], errors='coerce').notnull()]
+    # Drop all rows whose labels are not 0 or 1
+    csv = pd.concat([
+        csv[csv['label'] == '0'], 
+        csv[csv['label'] == '1'],
+    ])
+
+    # Drop all columns with no header
+    # Prevents errors from having other unnecessary data in other columns
+    # It selects the values of columns whose header does not
+    # begin with 'Unnamed'
+    csv = csv.loc[:, ~csv.columns.str.contains('^Unnamed')]
 
     # Extract X and y from the csv, this allows the data to be
     # undersampled
