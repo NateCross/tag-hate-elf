@@ -5,10 +5,12 @@ numpy==1.26.4
 pandas==2.2.0
 praw==7.7.1
 scikit_learn==1.3.1
-skorch==0.15.0
-torch==2.0.1
-transformers==4.33.2
+skorch
+torch
+transformers
 python-dotenv
 matplotlib
 tqdm
 ipywidgets
+ipykernel
+emoji

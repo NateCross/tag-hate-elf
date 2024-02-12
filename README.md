@@ -15,6 +15,7 @@ This documentation covers the development of the thesis requirement in BSCS IV. 
 - Transformers
 - Pandas
 - Excel (csv)
+- Rust
 
 ### References:
 
@@ -43,6 +44,9 @@ brew install python3
 ## For Windows:
 
 Download Python through their official Website - [Python](https://www.python.org/downloads/)
+### Rust
+
+[Download Rust here](https://www.rust-lang.org/tools/install)
 
 ## 2. Set-up the environment
 
