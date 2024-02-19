@@ -8,20 +8,31 @@ _estimators = [
     ('bert', BERT.BertPipeline),
 ]
 
+def initialize_estimators():
+    return [
+        ('nb', Bayes.BayesPipeline),
+        ('lstm', LSTM.LstmPipeline()),
+        ('bert', BERT.BertPipeline),
+    ]
+
 _regression = LogisticRegression()
 
-HardVotingEnsemble = VotingClassifier(
-    estimators=_estimators,
-    voting='hard',
-)
+def HardVotingEnsemble():
+    return VotingClassifier(
+        estimators=initialize_estimators(),
+        voting='hard',
+    )
 
-SoftVotingEnsemble = VotingClassifier(
-    estimators=_estimators,
-    voting='soft',
-)
+def SoftVotingEnsemble():
+    return VotingClassifier(
+        estimators=initialize_estimators(),
+        voting='soft',
+    )
 
-StackingEnsemble = StackingClassifier(
-    estimators=_estimators,
-    final_estimator=_regression,
-    cv=3,   # 3 fold cross validation
-)
+def StackingEnsemble():
+    return StackingClassifier(
+        estimators=initialize_estimators(),
+        final_estimator=_regression,
+        cv=3,   # 3 fold cross validation
+    )
+
