@@ -6,7 +6,8 @@ from skorch.callbacks import Checkpoint
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
 
-_device = device("cuda" if cuda.is_available() else "cpu")
+# _device = device("cuda" if cuda.is_available() else "cpu")
+_device = "cpu"
 
 class LstmModel(nn.Module):
     """
@@ -65,7 +66,7 @@ class LstmData():
 
 dataset = LstmData()
 
-Criterion = nn.L1Loss
+Criterion = nn.BCEWithLogitsLoss
 
 Optimizer = optim.Adam
 
@@ -82,6 +83,7 @@ def LstmPipeline():
         LstmModel,
         ### TODO: Revise LSTM and the options here
         module__input_size=dataset._input_size,
+        # module__input_size=dataset._input_size,
         module__hidden_size=128,
         module__output_size=1,
         module__num_layers=2,
@@ -95,7 +97,7 @@ def LstmPipeline():
     )
 
     LstmPipeline = Pipeline([
-        ('tokenizer', BertTokenizer),
+        ('tokenizer', Vectorizer),
         ('lstm', LstmNet),
     ])
 

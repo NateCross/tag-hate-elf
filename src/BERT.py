@@ -5,7 +5,8 @@ from skorch import NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 from skorch.callbacks import Checkpoint
 
-_device = device("cuda" if cuda.is_available() else "cpu")
+_device = "cpu"
+# _device = device("cuda" if cuda.is_available() else "cpu")
 
 _model_name = "bert-base-multilingual-cased"
 
@@ -51,7 +52,7 @@ BertNet = NeuralNetClassifier(
 
 BertPipeline = Pipeline([
     ('tokenizer', BertTokenizer),
-    ('bert', BertNet),
+    ('bert', BertModel),
 ])
 
 BertPipeline.set_params(
