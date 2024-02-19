@@ -20,7 +20,8 @@ class LstmModel(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, input_ids, **_):
-        input_ids = tensor(input_ids).to(_device).long()
+        input_ids = input_ids.clone().detach().to(_device).long()
+        # input_ids = tensor(input_ids).to(_device).long()
         input_ids = self.embedding(input_ids)
         lstm_out, _ = self.lstm(input_ids)
         lstm_out = lstm_out[:, -1, :]

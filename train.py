@@ -69,8 +69,8 @@ def get_train_test_split(data_frame: pd.DataFrame):
         y_train
         y_test
     """
-    text = data_frame.values[0]
-    labels = data_frame.values[1]
+    text = data_frame['text']
+    labels = data_frame['label']
 
     return train_test_split(
         text, 
