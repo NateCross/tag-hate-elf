@@ -33,7 +33,7 @@ BertTokenizer = HuggingfacePretrainedTokenizer('bert-base-multilingual-cased')
 Criterion = nn.CrossEntropyLoss
 
 _checkpoint = Checkpoint(
-    monitor='valid_acc_best',
+    monitor='train_loss_best',
     f_params='bert_train.pt',
 )
 """
@@ -45,14 +45,14 @@ BertNet = NeuralNetClassifier(
     criterion=Criterion,
     batch_size=10,
     device=_device,
-    callbacks=[_checkpoint],
+    # callbacks=[_checkpoint],
     train_split=None, # Fixes numpy.exceptions.AxisError in training
                       # Anyways, data is assumed to be already split
 )
 
 BertPipeline = Pipeline([
     ('tokenizer', BertTokenizer),
-    ('bert', BertModel),
+    ('bert', BertNet),
 ])
 
 BertPipeline.set_params(

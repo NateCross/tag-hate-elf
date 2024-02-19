@@ -1,5 +1,5 @@
 from sklearn.pipeline import Pipeline
-from torch import nn, optim, device, cuda
+from torch import nn, optim, device, cuda, tensor
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 from skorch.callbacks import Checkpoint
@@ -20,6 +20,7 @@ class LstmModel(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, input_ids, **_):
+        input_ids = tensor(input_ids).to(_device).long()
         input_ids = self.embedding(input_ids)
         lstm_out, _ = self.lstm(input_ids)
         lstm_out = lstm_out[:, -1, :]
@@ -66,12 +67,12 @@ class LstmData():
 
 dataset = LstmData()
 
-Criterion = nn.BCEWithLogitsLoss
+Criterion = nn.L1Loss
 
 Optimizer = optim.Adam
 
 _checkpoint = Checkpoint(
-    monitor='valid_acc_best',
+    monitor='train_loss_best',
     f_params='lstm_train.pt',
 )
 """
@@ -91,7 +92,7 @@ def LstmPipeline():
         optimizer=Optimizer,
         batch_size=10,
         device=_device,
-        callbacks=[_checkpoint],
+        # callbacks=[_checkpoint],
         train_split=None, # Fixes numpy.exceptions.AxisError in training
                         # Anyways, data is assumed to be already split
     )
