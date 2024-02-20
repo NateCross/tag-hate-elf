@@ -68,7 +68,7 @@ class LstmData():
 
 dataset = LstmData()
 
-Criterion = nn.L1Loss
+Criterion = nn.BCEWithLogitsLoss
 
 Optimizer = optim.Adam
 
@@ -85,7 +85,6 @@ def LstmPipeline():
         LstmModel,
         ### TODO: Revise LSTM and the options here
         module__input_size=dataset._input_size,
-        # module__input_size=dataset._input_size,
         module__hidden_size=128,
         module__output_size=1,
         module__num_layers=2,
@@ -93,7 +92,7 @@ def LstmPipeline():
         optimizer=Optimizer,
         batch_size=10,
         device=_device,
-        # callbacks=[_checkpoint],
+        callbacks=[_checkpoint],
         train_split=None, # Fixes numpy.exceptions.AxisError in training
                         # Anyways, data is assumed to be already split
     )

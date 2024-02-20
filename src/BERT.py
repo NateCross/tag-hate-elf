@@ -45,7 +45,7 @@ BertNet = NeuralNetClassifier(
     criterion=Criterion,
     batch_size=10,
     device=_device,
-    # callbacks=[_checkpoint],
+    callbacks=[_checkpoint],
     train_split=None, # Fixes numpy.exceptions.AxisError in training
                       # Anyways, data is assumed to be already split
 )
