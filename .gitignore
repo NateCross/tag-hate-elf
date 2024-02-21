@@ -17,3 +17,5 @@ scraping/.env
 notebook/.env
 
 **/*.ipynb_checkpoints/
+
+history.json
