@@ -27,16 +27,17 @@ class LstmModel(nn.Module):
         lstm_out = lstm_out[:, -1, :]
         output = self.fc(lstm_out)
 
-        return output
-
-BertTokenizer = HuggingfacePretrainedTokenizer('bert-base-multilingual-cased')
+        return output.squeeze(1)
 
 STOP_WORDS = open(
     f"{dirname(__file__)}/stopwords-tl.txt", 
     "r",
 ).read().split('\n')
 
-Vectorizer = TfidfVectorizer(stop_words=STOP_WORDS)
+Vectorizer = TfidfVectorizer(
+    stop_words=STOP_WORDS,
+    dtype=long,
+)
 
 class LstmData():
     """
@@ -68,6 +69,7 @@ class LstmData():
 
 dataset = LstmData()
 
+# Criterion = nn.L1Loss
 Criterion = nn.BCEWithLogitsLoss
 
 Optimizer = optim.Adam

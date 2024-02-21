@@ -44,7 +44,13 @@ def read_csv_file(filename: str) -> pd.DataFrame:
             manipulated
     """
     try:
-        return pd.read_csv(filename, lineterminator='\n')
+        return pd.read_csv(
+            filename, 
+            lineterminator='\n',
+            dtype={
+                'label': float,
+            },
+        )
     except FileNotFoundError:
         print("ERROR: File not found")
         exit(1)
@@ -72,12 +78,19 @@ def get_train_test_split(data_frame: pd.DataFrame):
     text = data_frame['text']
     labels = data_frame['label']
 
-    return train_test_split(
+    labels = np.array(labels)
+
+    X_train, X_test, y_train, y_test = train_test_split(
         text, 
         labels, 
         test_size=0.2,  # 80/20 train/test split
         random_state=42,
     )
+
+    # y_train = y_train.float()
+    # y_test = y_test.float()
+
+    return X_train, X_test, y_train, y_test
 
 def undersample_data(X_train: list, y_train: list):
     """
