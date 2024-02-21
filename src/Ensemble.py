@@ -12,7 +12,7 @@ def initialize_estimators():
     return [
         ('nb', Bayes.BayesPipeline),
         ('lstm', LSTM.LstmPipeline()),
-        # ('bert', BERT.BertPipeline),
+        ('bert', BERT.BertPipeline),
     ]
 
 _regression = LogisticRegression()

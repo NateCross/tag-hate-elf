@@ -3,6 +3,7 @@ from torch import nn, optim, device, cuda, tensor
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 from skorch.callbacks import Checkpoint
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
 
@@ -36,7 +37,7 @@ STOP_WORDS = open(
 
 Vectorizer = TfidfVectorizer(
     stop_words=STOP_WORDS,
-    dtype=long,
+    # dtype=float,
 )
 
 class LstmData():
@@ -70,7 +71,8 @@ class LstmData():
 dataset = LstmData()
 
 # Criterion = nn.L1Loss
-Criterion = nn.BCEWithLogitsLoss
+# Criterion = nn.BCEWithLogitsLoss
+Criterion = nn.CrossEntropyLoss
 
 Optimizer = optim.Adam
 
@@ -82,13 +84,30 @@ _checkpoint = Checkpoint(
 Checkpoint is used to save and load training progress
 """
 
+class DataFormatTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, data):
+        print(len(data))
+        X = data[0]
+        y = data[1]
+        print("X:")
+        print(X)
+        print("y:")
+        print(y)
+        return X
+
 def LstmPipeline():
-    LstmNet = NeuralNetBinaryClassifier(
+    LstmNet = NeuralNetClassifier(
         LstmModel,
         ### TODO: Revise LSTM and the options here
         module__input_size=dataset._input_size,
         module__hidden_size=128,
-        module__output_size=1,
+        module__output_size=2,
         module__num_layers=2,
         criterion=Criterion,
         optimizer=Optimizer,
@@ -101,6 +120,7 @@ def LstmPipeline():
 
     LstmPipeline = Pipeline([
         ('tokenizer', Vectorizer),
+        # ('format', DataFormatTransformer()),
         ('lstm', LstmNet),
     ])
 
