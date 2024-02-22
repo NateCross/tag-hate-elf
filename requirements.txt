@@ -14,3 +14,4 @@ tqdm
 ipywidgets
 ipykernel
 emoji
+joblib

@@ -2,12 +2,6 @@ from . import Bayes, LSTM, BERT
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 from sklearn.linear_model import LogisticRegression
 
-_estimators = [
-    ('nb', Bayes.BayesPipeline),
-    ('lstm', LSTM.LstmPipeline),
-    ('bert', BERT.BertPipeline),
-]
-
 def initialize_estimators():
     return [
         ('nb', Bayes.BayesPipeline),

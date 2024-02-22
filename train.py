@@ -154,7 +154,9 @@ def save_trained_model(ensemble, filename = "Ensemble.pt"):
             A trained hard voting, soft voting, or stacking 
             ensemble from scikit-learn
     """
-    ensemble.save_params(f_params=filename)
+    import joblib
+    joblib.dump(ensemble, 'ensemble.pkl', compress=True)
+    # ensemble.save_params(f_params=filename)
 
 if __name__ == "__main__":
     args = parse_arguments()

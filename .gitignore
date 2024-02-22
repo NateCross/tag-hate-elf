@@ -11,6 +11,7 @@ notebook/data-*
 *.pt
 **/*.pt
 *.pickle
+*.pkl
 LSTMRevisions
 .env
 scraping/.env
