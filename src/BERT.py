@@ -5,8 +5,8 @@ from skorch import NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 from skorch.callbacks import Checkpoint, LoadInitState
 
-# _device = "cpu"
-_device = device("cuda" if cuda.is_available() else "cpu")
+_device = "cpu"
+# _device = device("cuda" if cuda.is_available() else "cpu")
 
 _model_name = "bert-base-multilingual-cased"
 

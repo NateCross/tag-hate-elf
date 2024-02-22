@@ -7,8 +7,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
 
-_device = device("cuda" if cuda.is_available() else "cpu")
-# _device = "cpu"
+# _device = device("cuda" if cuda.is_available() else "cpu")
+_device = "cpu"
 
 class LstmModel(nn.Module):
     """
@@ -21,11 +21,14 @@ class LstmModel(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, input_ids, **_):
-        input_ids = input_ids.clone().detach().to(_device).long()
+        # input_ids = input_ids.clone().detach().to(_device).long()
+        print(input_ids)
         # input_ids = tensor(input_ids).to(_device).long()
         input_ids = self.embedding(input_ids)
+        print(input_ids)
         lstm_out, _ = self.lstm(input_ids)
         lstm_out = lstm_out[:, -1, :]
+        # _, (final_hidden_state, __) = self.lstm(input_ids)
         output = self.fc(lstm_out)
 
         return output.squeeze(1)
@@ -125,7 +128,7 @@ def LstmPipeline():
     )
 
     LstmPipeline = Pipeline([
-        ('tokenizer', Vectorizer),
+        # ('tokenizer', Vectorizer),
         # ('format', DataFormatTransformer()),
         ('lstm', LstmNet),
     ])
