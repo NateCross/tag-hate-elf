@@ -6,9 +6,20 @@ from skorch.callbacks import Checkpoint, LoadInitState
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
+from transformers import BertForSequenceClassification
 
 # _device = device("cuda" if cuda.is_available() else "cpu")
 _device = "cpu"
+
+_model_name = "bert-base-multilingual-cased"
+
+_model = BertForSequenceClassification.from_pretrained(
+    _model_name,
+    device_map=_device,
+)
+_model.to(_device)
+
+BertTokenizer = HuggingfacePretrainedTokenizer('bert-base-multilingual-cased')
 
 class LstmModel(nn.Module):
     """
@@ -22,10 +33,10 @@ class LstmModel(nn.Module):
 
     def forward(self, input_ids, **_):
         # input_ids = input_ids.clone().detach().to(_device).long()
-        print(input_ids)
+        # print(input_ids)
         # input_ids = tensor(input_ids).to(_device).long()
         input_ids = self.embedding(input_ids)
-        print(input_ids)
+        # print(input_ids)
         lstm_out, _ = self.lstm(input_ids)
         lstm_out = lstm_out[:, -1, :]
         # _, (final_hidden_state, __) = self.lstm(input_ids)
@@ -64,11 +75,19 @@ class LstmData():
         Execute this method to set the input size for LSTM.
         Must be run before training
         """
-        vectorizer = TfidfVectorizer(stop_words=STOP_WORDS)
-        x_train_tfidf = vectorizer.fit_transform(X_train)
 
+        tokenizer = HuggingfacePretrainedTokenizer('bert-base-multilingual-cased')
+        x_train_tokenizer = tokenizer.fit_transform(X_train)
+        # print(len(tokenizer.vocabulary_))
+        # print(x_train_tokenizer.vocabulary_)
         self.X_train = X_train
-        self._input_size = x_train_tfidf.shape[1]
+        self._input_size = len(tokenizer.vocabulary_)
+
+        # vectorizer = TfidfVectorizer(stop_words=STOP_WORDS)
+        # x_train_tfidf = vectorizer.fit_transform(X_train)
+        #
+        # self.X_train = X_train
+        # self._input_size = x_train_tfidf.shape[1]
 
 
 dataset = LstmData()
@@ -111,6 +130,8 @@ def LstmPipeline():
     LstmNet = NeuralNetClassifier(
         LstmModel,
         ### TODO: Revise LSTM and the options here
+        # module__input_size=len(BertTokenizer.vocabulary_),
+        # module__input_size=517,
         module__input_size=dataset._input_size,
         module__hidden_size=128,
         module__output_size=2,
@@ -128,6 +149,7 @@ def LstmPipeline():
     )
 
     LstmPipeline = Pipeline([
+        ('tokenizer', BertTokenizer),
         # ('tokenizer', Vectorizer),
         # ('format', DataFormatTransformer()),
         ('lstm', LstmNet),
