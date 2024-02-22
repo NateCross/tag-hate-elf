@@ -2,13 +2,13 @@ from sklearn.pipeline import Pipeline
 from torch import nn, optim, device, cuda, tensor
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
-from skorch.callbacks import Checkpoint
+from skorch.callbacks import Checkpoint, LoadInitState
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
 
-# _device = device("cuda" if cuda.is_available() else "cpu")
-_device = "cpu"
+_device = device("cuda" if cuda.is_available() else "cpu")
+# _device = "cpu"
 
 class LstmModel(nn.Module):
     """
@@ -76,10 +76,13 @@ Criterion = nn.CrossEntropyLoss
 
 Optimizer = optim.Adam
 
-_checkpoint = Checkpoint(
+checkpoint = Checkpoint(
     monitor='train_loss_best',
-    f_params='lstm_train.pt',
+    dirname='train_lstm',
+    # f_params='lstm_train.pt',
 )
+
+load_state = LoadInitState(checkpoint)
 """
 Checkpoint is used to save and load training progress
 """
@@ -113,7 +116,10 @@ def LstmPipeline():
         optimizer=Optimizer,
         batch_size=10,
         device=_device,
-        callbacks=[_checkpoint],
+        callbacks=[
+            checkpoint, 
+            load_state,
+        ],
         train_split=None, # Fixes numpy.exceptions.AxisError in training
                         # Anyways, data is assumed to be already split
     )

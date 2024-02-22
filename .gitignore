@@ -20,3 +20,6 @@ notebook/.env
 **/*.ipynb_checkpoints/
 
 history.json
+
+train_bert/*
+train_lstm/*
