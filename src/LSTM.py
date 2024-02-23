@@ -11,13 +11,7 @@ from transformers import BertForSequenceClassification
 # _device = device("cuda" if cuda.is_available() else "cpu")
 _device = "cpu"
 
-_model_name = "bert-base-multilingual-cased"
-
-_model = BertForSequenceClassification.from_pretrained(
-    _model_name,
-    device_map=_device,
-)
-_model.to(_device)
+# _model_name = "bert-base-multilingual-cased"
 
 BertTokenizer = HuggingfacePretrainedTokenizer('bert-base-multilingual-cased')
 
@@ -28,8 +22,14 @@ class LstmModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, num_layers):
         super(LstmModel, self).__init__()
         self.embedding = nn.Embedding(input_size, hidden_size)
-        self.lstm = nn.LSTM(hidden_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.lstm = nn.LSTM(
+            hidden_size, 
+            256, 
+            num_layers, 
+            batch_first=True,
+            bias=False,
+        )
+        self.fc = nn.Linear(256, output_size)
 
     def forward(self, input_ids, **_):
         # input_ids = input_ids.clone().detach().to(_device).long()
@@ -38,9 +38,12 @@ class LstmModel(nn.Module):
         input_ids = self.embedding(input_ids)
         # print(input_ids)
         lstm_out, _ = self.lstm(input_ids)
-        lstm_out = lstm_out[:, -1, :]
+        lstm_out = lstm_out[:, -1]
+        # lstm_out = lstm_out[:, -1, :]
+        # print(lstm_out)
         # _, (final_hidden_state, __) = self.lstm(input_ids)
         output = self.fc(lstm_out)
+        # print(output)
 
         return output.squeeze(1)
 
@@ -136,6 +139,8 @@ def LstmPipeline():
         module__hidden_size=128,
         module__output_size=2,
         module__num_layers=2,
+        optimizer__lr=0.0000000001,
+        optimizer__weight_decay=0.01,
         criterion=Criterion,
         optimizer=Optimizer,
         batch_size=10,
