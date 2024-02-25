@@ -1,5 +1,5 @@
 from sklearn.pipeline import Pipeline
-from torch import nn, optim, device, cuda, tensor
+from torch import nn, optim, device, cuda, tensor, relu
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 from skorch.callbacks import Checkpoint, LoadInitState
@@ -27,17 +27,26 @@ class LstmModel(nn.Module):
             256, 
             num_layers, 
             batch_first=True,
-            bias=False,
+            # bias=False,
         )
         self.fc = nn.Linear(256, output_size)
+
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
 
     def forward(self, input_ids, **_):
         # input_ids = input_ids.clone().detach().to(_device).long()
         # print(input_ids)
         # input_ids = tensor(input_ids).to(_device).long()
+        batch_size = input_ids.size(0)
+        hidden = self.init_hidden(batch_size)
+
         input_ids = self.embedding(input_ids)
         # print(input_ids)
-        lstm_out, _ = self.lstm(input_ids)
+        lstm_out, _ = self.lstm(input_ids, hidden)
+
+        lstm_out = relu(lstm_out)
+
         lstm_out = lstm_out[:, -1]
         # lstm_out = lstm_out[:, -1, :]
         # print(lstm_out)
@@ -46,6 +55,13 @@ class LstmModel(nn.Module):
         # print(output)
 
         return output.squeeze(1)
+
+    def init_hidden(self, batch_size):
+        # Initialize hidden state with zeros
+        weight = next(self.parameters()).data
+        hidden = (weight.new(self.num_layers, batch_size, self.hidden_size).zero_().to(_device),
+        weight.new(self.num_layers, batch_size, self.hidden_size).zero_().to(_device))
+        return hidden
 
 STOP_WORDS = open(
     f"{dirname(__file__)}/stopwords-tl.txt", 
@@ -97,7 +113,8 @@ dataset = LstmData()
 
 # Criterion = nn.L1Loss
 # Criterion = nn.BCEWithLogitsLoss
-Criterion = nn.CrossEntropyLoss
+# Criterion = nn.CrossEntropyLoss
+Criterion = nn.BCELoss
 
 Optimizer = optim.Adam
 
@@ -139,7 +156,7 @@ def LstmPipeline():
         module__hidden_size=128,
         module__output_size=2,
         module__num_layers=2,
-        optimizer__lr=0.0000000001,
+        optimizer__lr=0.00001,
         optimizer__weight_decay=0.01,
         criterion=Criterion,
         optimizer=Optimizer,
