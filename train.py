@@ -1,3 +1,8 @@
+import warnings
+warnings.filterwarnings('ignore')
+from transformers import logging
+logging.set_verbosity_error()
+
 import argparse
 import pandas as pd
 import torch

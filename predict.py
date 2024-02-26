@@ -1,3 +1,8 @@
+import warnings
+warnings.filterwarnings('ignore')
+from transformers import logging
+logging.set_verbosity_error()
+
 import joblib
 
 if __name__ == "__main__":

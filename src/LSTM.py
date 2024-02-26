@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.pipeline import Pipeline
 from torch import nn, optim, device, cuda, tensor, relu
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
@@ -152,13 +153,21 @@ class DataFormatTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, data):
-        result = [
-            text.vector.reshape(1, -1)
-            for text 
-            in Calamancy.pipe(data.values)
-        ]
+        # print(data)
+        if isinstance(data, pd.Series):
+            result = [
+                text.vector.reshape(1, -1)
+                for text 
+                in Calamancy.pipe(data.values)
+            ]
+        else:
+            result = [
+                text.vector.reshape(1, -1)
+                for text 
+                in Calamancy.pipe(data)
+            ]
         result = np.concatenate(result)
-        print(result)
+        # print(result)
         # result = list(Calamancy.pipe(data.values))
         # print(result[0].vector)
         # for token in result[0]:
