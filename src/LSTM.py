@@ -15,7 +15,7 @@ _device = "cpu"
 
 # _model_name = "bert-base-multilingual-cased"
 
-Tokenizer = HuggingfacePretrainedTokenizer('ljvmiranda921/tl_calamancy_lg')
+# Tokenizer = HuggingfacePretrainedTokenizer('ljvmiranda921/tl_calamancy_lg')
 
 Calamancy = calamancy.load("tl_calamancy_md-0.1.0")
 
@@ -27,13 +27,13 @@ class LstmModel(nn.Module):
         super(LstmModel, self).__init__()
         self.embedding = nn.Embedding(input_size, hidden_size)
         self.lstm = nn.LSTM(
-            hidden_size, 
-            hidden_size, 
+            200, 
+            400,
             num_layers, 
             batch_first=True,
             # bias=False,
         )
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.fc = nn.Linear(400, output_size)
 
         self.num_layers = num_layers
         self.hidden_size = hidden_size
@@ -52,19 +52,24 @@ class LstmModel(nn.Module):
         #
         # input_ids = self.embedding(input_ids)
         # print(input_ids)
+        lstm_out, _ = self.lstm(input)
         # lstm_out, _ = self.lstm(input_ids, hidden)
-        # print(lstm_out)
+        print(lstm_out)
         #
         # lstm_out = relu(lstm_out)
         #
-        # lstm_out = lstm_out[:, -1]
+        lstm_out = lstm_out[:, -1]
+        lstm_out = lstm_out.float()
+        lstm_out = lstm_out.reshape(1, -1)
+        # lstm_out = lstm_out.unsqueeze(-1)
+        print(lstm_out)
         # # lstm_out = lstm_out[:, -1, :]
         # print(lstm_out)
         # # _, (final_hidden_state, __) = self.lstm(input_ids)
-        # output = self.fc(lstm_out)
-        # print(output)
+        output = self.fc(lstm_out)
+        print(output)
 
-        return 1
+        return output
 
     def init_hidden(self, batch_size):
         # Initialize hidden state with zeros
@@ -175,7 +180,7 @@ def LstmPipeline():
         # module__input_size=len(BertTokenizer.vocabulary_),
         # module__input_size=517,
         module__input_size=dataset._input_size,
-        module__hidden_size=128,
+        module__hidden_size=200,
         module__output_size=2,
         module__num_layers=2,
         optimizer__lr=0.00001,
