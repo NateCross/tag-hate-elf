@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 def initialize_estimators():
     return [
         ('nb', Bayes.BayesPipeline),
-        ('lstm', LSTM.LstmPipeline()),
+        ('lstm', LSTM.LstmPipeline),
         ('bert', BERT.BertPipeline),
     ]
 

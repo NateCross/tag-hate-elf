@@ -9,8 +9,7 @@ import torch
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from src import Ensemble, LSTM
-from imblearn.under_sampling import RandomUnderSampler
+from src import Ensemble
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -97,22 +96,6 @@ def get_train_test_split(data_frame: pd.DataFrame):
 
     return X_train, X_test, y_train, y_test
 
-def undersample_data(X_train: list, y_train: list):
-    """
-    Undersample the data in case of imbalances.
-    This way, there will be an even distribution
-    among the hate and non-hate speech.
-    Uses random undersampling because it is simple
-    but sufficient for this use case.
-
-    Args:
-        X_train: From the csv after train-test split
-        y_train: From the csv after train-test split
-    """
-    sampler = RandomUnderSampler(random_state=42)
-    return sampler.fit_resample(X_train, y_train)
-
-
 def train_ensemble(X_train: list, y_train: list, ensemble):
     """
     Train the ensemble using the csv data.
@@ -174,10 +157,6 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = get_train_test_split(
         DATA_FRAME
     )
-
-    # Set the dataset to properly get dictionary length
-    # for the tokenization and vectorization
-    LSTM.dataset.change(X_train)
 
     # Select the ensemble method from the script's args
     ENSEMBLE = {
