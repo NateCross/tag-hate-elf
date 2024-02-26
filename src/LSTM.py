@@ -42,7 +42,7 @@ class LstmModel(nn.Module):
         # input_ids = input_ids.clone().detach().to(_device).long()
         # print(input_ids)
         # input_ids = tensor(input_ids).to(_device).long()
-        print(input)
+        # print(input)
         
         # print("NEW")
         # print(input_ids)
@@ -54,20 +54,20 @@ class LstmModel(nn.Module):
         # print(input_ids)
         lstm_out, _ = self.lstm(input)
         # lstm_out, _ = self.lstm(input_ids, hidden)
-        print(lstm_out)
+        # print(lstm_out)
         #
         # lstm_out = relu(lstm_out)
         #
-        lstm_out = lstm_out[:, -1]
-        lstm_out = lstm_out.float()
-        lstm_out = lstm_out.reshape(1, -1)
+        # lstm_out = lstm_out[:, -1]
+        # lstm_out = lstm_out.float()
+        # lstm_out = lstm_out.reshape(1, -1)
         # lstm_out = lstm_out.unsqueeze(-1)
-        print(lstm_out)
+        # print(lstm_out)
         # # lstm_out = lstm_out[:, -1, :]
         # print(lstm_out)
         # # _, (final_hidden_state, __) = self.lstm(input_ids)
         output = self.fc(lstm_out)
-        print(output)
+        # print(output)
 
         return output
 
