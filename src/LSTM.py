@@ -24,12 +24,12 @@ class LstmModel(nn.Module):
         self.embedding = nn.Embedding(input_size, hidden_size)
         self.lstm = nn.LSTM(
             hidden_size, 
-            256, 
+            hidden_size, 
             num_layers, 
             batch_first=True,
             # bias=False,
         )
-        self.fc = nn.Linear(256, output_size)
+        self.fc = nn.Linear(hidden_size, output_size)
 
         self.num_layers = num_layers
         self.hidden_size = hidden_size
@@ -38,23 +38,27 @@ class LstmModel(nn.Module):
         # input_ids = input_ids.clone().detach().to(_device).long()
         # print(input_ids)
         # input_ids = tensor(input_ids).to(_device).long()
+        print("NEW")
+        print(input_ids)
+
         batch_size = input_ids.size(0)
         hidden = self.init_hidden(batch_size)
 
         input_ids = self.embedding(input_ids)
-        # print(input_ids)
+        print(input_ids)
         lstm_out, _ = self.lstm(input_ids, hidden)
+        print(lstm_out)
 
         lstm_out = relu(lstm_out)
 
         lstm_out = lstm_out[:, -1]
         # lstm_out = lstm_out[:, -1, :]
-        # print(lstm_out)
+        print(lstm_out)
         # _, (final_hidden_state, __) = self.lstm(input_ids)
         output = self.fc(lstm_out)
-        # print(output)
+        print(output)
 
-        return output.squeeze(1)
+        return output
 
     def init_hidden(self, batch_size):
         # Initialize hidden state with zeros
@@ -113,8 +117,8 @@ dataset = LstmData()
 
 # Criterion = nn.L1Loss
 # Criterion = nn.BCEWithLogitsLoss
-# Criterion = nn.CrossEntropyLoss
-Criterion = nn.BCELoss
+Criterion = nn.CrossEntropyLoss
+# Criterion = nn.BCELoss
 
 Optimizer = optim.Adam
 
@@ -159,6 +163,7 @@ def LstmPipeline():
         optimizer__lr=0.00001,
         optimizer__weight_decay=0.01,
         criterion=Criterion,
+        # criterion__reduction='none',
         optimizer=Optimizer,
         batch_size=10,
         device=_device,
