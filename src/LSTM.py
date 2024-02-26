@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.pipeline import Pipeline
 from torch import nn, optim, device, cuda, tensor, relu
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
@@ -7,13 +8,16 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
 from transformers import BertForSequenceClassification
+import calamancy
 
 # _device = device("cuda" if cuda.is_available() else "cpu")
 _device = "cpu"
 
 # _model_name = "bert-base-multilingual-cased"
 
-BertTokenizer = HuggingfacePretrainedTokenizer('bert-base-multilingual-cased')
+Tokenizer = HuggingfacePretrainedTokenizer('ljvmiranda921/tl_calamancy_lg')
+
+Calamancy = calamancy.load("tl_calamancy_md-0.1.0")
 
 class LstmModel(nn.Module):
     """
@@ -34,31 +38,33 @@ class LstmModel(nn.Module):
         self.num_layers = num_layers
         self.hidden_size = hidden_size
 
-    def forward(self, input_ids, **_):
+    def forward(self, input):
         # input_ids = input_ids.clone().detach().to(_device).long()
         # print(input_ids)
         # input_ids = tensor(input_ids).to(_device).long()
-        print("NEW")
-        print(input_ids)
+        print(input)
+        
+        # print("NEW")
+        # print(input_ids)
+        #
+        # batch_size = input_ids.size(0)
+        # hidden = self.init_hidden(batch_size)
+        #
+        # input_ids = self.embedding(input_ids)
+        # print(input_ids)
+        # lstm_out, _ = self.lstm(input_ids, hidden)
+        # print(lstm_out)
+        #
+        # lstm_out = relu(lstm_out)
+        #
+        # lstm_out = lstm_out[:, -1]
+        # # lstm_out = lstm_out[:, -1, :]
+        # print(lstm_out)
+        # # _, (final_hidden_state, __) = self.lstm(input_ids)
+        # output = self.fc(lstm_out)
+        # print(output)
 
-        batch_size = input_ids.size(0)
-        hidden = self.init_hidden(batch_size)
-
-        input_ids = self.embedding(input_ids)
-        print(input_ids)
-        lstm_out, _ = self.lstm(input_ids, hidden)
-        print(lstm_out)
-
-        lstm_out = relu(lstm_out)
-
-        lstm_out = lstm_out[:, -1]
-        # lstm_out = lstm_out[:, -1, :]
-        print(lstm_out)
-        # _, (final_hidden_state, __) = self.lstm(input_ids)
-        output = self.fc(lstm_out)
-        print(output)
-
-        return output
+        return 1
 
     def init_hidden(self, batch_size):
         # Initialize hidden state with zeros
@@ -141,14 +147,26 @@ class DataFormatTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, data):
-        print(len(data))
-        X = data[0]
-        y = data[1]
-        print("X:")
-        print(X)
-        print("y:")
-        print(y)
-        return X
+        result = [
+            text.vector.reshape(1, -1)
+            for text 
+            in Calamancy.pipe(data.values)
+        ]
+        result = np.concatenate(result)
+        print(result)
+        # result = list(Calamancy.pipe(data.values))
+        # print(result[0].vector)
+        # for token in result[0]:
+        #     print(token.vector)
+        return result
+        # print(len(data))
+        # X = data[0]
+        # y = data[1]
+        # print("X:")
+        # print(X)
+        # print("y:")
+        # print(y)
+        # return X
 
 def LstmPipeline():
     LstmNet = NeuralNetClassifier(
@@ -176,9 +194,9 @@ def LstmPipeline():
     )
 
     LstmPipeline = Pipeline([
-        ('tokenizer', BertTokenizer),
+        # ('tokenizer', Tokenizer),
         # ('tokenizer', Vectorizer),
-        # ('format', DataFormatTransformer()),
+        ('format', DataFormatTransformer()),
         ('lstm', LstmNet),
     ])
 
