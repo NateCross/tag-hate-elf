@@ -3,6 +3,7 @@ warnings.filterwarnings('ignore')
 from transformers import logging
 logging.set_verbosity_error()
 
+from sklearn.ensemble import VotingClassifier
 import joblib
 
 if __name__ == "__main__":
@@ -16,6 +17,9 @@ if __name__ == "__main__":
     ]
     for estimator in ensemble.estimators_:
         print(estimator.predict_proba(quotes))
-    print(ensemble.predict_proba(quotes))
+    if isinstance(ensemble, VotingClassifier) and ensemble.voting == 'hard':
+        print(ensemble.predict(quotes))
+    else:
+        print(ensemble.predict_proba(quotes))
 
     exit(0)

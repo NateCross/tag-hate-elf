@@ -72,7 +72,7 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
 
 LstmNet = NeuralNetClassifier(
     LstmModel,
-    ### TODO: Revise LSTM and the options here
+    module__hidden_size=400,
     optimizer__lr=0.00001,
     optimizer__weight_decay=0.01,
     criterion=Criterion,

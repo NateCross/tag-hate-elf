@@ -8,7 +8,12 @@ import pandas as pd
 import torch
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import (
+    accuracy_score, 
+    recall_score, 
+    precision_score, 
+    f1_score
+)
 from src import Ensemble
 
 def parse_arguments() -> argparse.Namespace:
@@ -126,7 +131,10 @@ def get_prediction_results(X_test: list, y_test: list, ensemble):
     with torch.inference_mode():
         y_pred = ensemble.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
-        return accuracy
+        recall = recall_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        return accuracy, recall, precision, f1
 
 def save_trained_model(ensemble, filename = "Ensemble.pt"):
     """
@@ -167,9 +175,12 @@ if __name__ == "__main__":
 
     ENSEMBLE = train_ensemble(X_train, y_train, ENSEMBLE)
 
-    accuracy = get_prediction_results(X_test, y_test, ENSEMBLE)
+    accuracy, recall, precision, f1 = get_prediction_results(X_test, y_test, ENSEMBLE)
 
     print(f"Accuracy: {accuracy}")
+    print(f"Recall: {recall}")
+    print(f"Precision: {precision}")
+    print(f"F1-score: {f1}")
 
     save_trained_model(ENSEMBLE)
 
