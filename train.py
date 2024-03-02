@@ -136,7 +136,7 @@ def get_prediction_results(X_test: list, y_test: list, ensemble):
         f1 = f1_score(y_test, y_pred)
         return accuracy, recall, precision, f1
 
-def save_trained_model(ensemble, filename = "Ensemble.pt"):
+def save_trained_model(ensemble, filename = "Ensemble"):
     """
     Saves the ensemble to disk.
     We use save_params for portability, but we must
@@ -151,8 +151,7 @@ def save_trained_model(ensemble, filename = "Ensemble.pt"):
             ensemble from scikit-learn
     """
     import joblib
-    joblib.dump(ensemble, 'ensemble.pkl', compress=True)
-    # ensemble.save_params(f_params=filename)
+    joblib.dump(ensemble, f'{filename}.pkl', compress=True)
 
 if __name__ == "__main__":
     args = parse_arguments()
@@ -182,7 +181,7 @@ if __name__ == "__main__":
     print(f"Precision: {precision}")
     print(f"F1-score: {f1}")
 
-    save_trained_model(ENSEMBLE)
+    save_trained_model(ENSEMBLE, f'ensemble-{ENSEMBLE_METHOD}')
 
     print("Saved ensemble to disk")
 

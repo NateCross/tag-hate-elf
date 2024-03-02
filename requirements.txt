@@ -17,3 +17,4 @@ emoji
 joblib
 spacy>=3.5.0
 calamanCy
+PySimpleGUI
