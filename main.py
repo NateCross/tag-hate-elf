@@ -6,6 +6,7 @@ logging.set_verbosity_error()
 import PySimpleGUI as sg
 import joblib
 from sklearn.ensemble import VotingClassifier
+from src import Utils
 
 def load_ensemble(filename: str):
     try:
@@ -17,7 +18,17 @@ def load_ensemble(filename: str):
         return None
     return ensemble
 
+def clean_text(text: str):
+    text = Utils.unmark(text)
+    text = Utils.remove_urls(text)
+    text = Utils.remove_usernames(text)
+    text = Utils.remove_emojis(text)
+    text = Utils.remove_escape_sequences(text)
+    text = text.rstrip()
+    return text
+
 def predict(ensemble, text: str):
+    text = clean_text(text)
     learner_predictions = [
         estimator.predict_proba([text])
         for estimator in ensemble.estimators_
@@ -39,10 +50,66 @@ def hard_voting():
         auto_close=True,
         auto_close_duration=1,
     )
+    input_column = sg.Column([
+        [sg.Text("Input text:")],
+        [sg.Multiline(size=(None, 12), key='-INPUT-')],
+        [
+            sg.Exit(),
+            sg.Push(),
+            sg.Button('Predict'),
+        ],
+    ])
+    table_values = [
+        ['Bernoulli Naive Bayes', '-', '-'],
+        ['LSTM', '-', '-'],
+        ['mBERT', '-', '-'],
+    ]
+    output_column = sg.Column([
+        [sg.Table(
+            values=table_values, 
+            auto_size_columns=True, 
+            key='-TABLE-',
+            headings=(
+                'Learner',
+                '0 (Non-hate)', 
+                '1 (Hate)',
+            )
+        )],
+        [
+            sg.Text('Ensemble:', justification='r'), 
+            sg.Text('-', key='-ENSEMBLE-', justification='l'),
+        ],
+    ], element_justification='c')
+    layout = [
+        [input_column, sg.VerticalSeparator(), output_column]
+    ]
     ensemble = load_ensemble('ensemble-hard.pkl')
-    # window.start_thread()
+    if not ensemble:
+        return
+    window = sg.Window(
+        'Hard Voting Ensemble',
+        layout,
+        modal=True,
+    )
+    while True:
+        event, values = window.read()
 
-    print(ensemble)
+        if event == 'Predict':
+            result, learner_predictions = predict(
+                ensemble, 
+                values['-INPUT-']
+            )
+            table_values[0][1:] = learner_predictions[0][0]
+            table_values[1][1:] = learner_predictions[1][0]
+            table_values[2][1:] = learner_predictions[2][0]
+            window['-ENSEMBLE-'].update(
+                'Non-hate' if result[0] == 0 else 'Hate'
+            )
+            window['-TABLE-'].update(table_values)
+        elif event == sg.WIN_CLOSED or event == 'Exit':
+            break
+
+    window.close()
 
 def soft_voting():
     pass
