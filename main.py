@@ -5,32 +5,44 @@ logging.set_verbosity_error()
 
 import PySimpleGUI as sg
 import joblib
-from concurrent.futures import ThreadPoolExecutor
+from sklearn.ensemble import VotingClassifier
 
-def load_ensemble(filename: str, window: sg.Window):
+def load_ensemble(filename: str):
     try:
-        ensemble = joblib.load('ensemble-hard.pkl')
+        ensemble = joblib.load(filename)
     except FileNotFoundError:
         sg.PopupError(
-            'ERROR: "ensemble-hard.pkl" not found. Please train a hard voting ensemble first.'
+            f'ERROR: "{filename}" not found. Please train a hard voting ensemble first.'
         )
         return None
     return ensemble
 
 def predict(ensemble, text: str):
-    pass
-    
-
+    learner_predictions = [
+        estimator.predict_proba([text])
+        for estimator in ensemble.estimators_
+    ]
+    if isinstance(ensemble, VotingClassifier) and ensemble.voting == 'hard':
+        return ensemble.predict([text]), learner_predictions
+    else:
+        return ensemble.predict_proba([text]), learner_predictions
 
 def hard_voting():
     # ensemble_window = sg.Window()
-    loading_popup = sg.PopupNoButtons(
-        'Loading hard voting ensemble...,'
+    sg.PopupNonBlocking(
+        'Loading hard voting ensemble...',
+        button_type=sg.POPUP_BUTTONS_NO_BUTTONS,
+        modal=True,
+        # We do auto close to keep the loading popup active
+        # while the thread execution is blocked due to
+        # loading the ensemble
+        auto_close=True,
+        auto_close_duration=1,
     )
+    ensemble = load_ensemble('ensemble-hard.pkl')
     # window.start_thread()
 
-
-    # print(ensemble)
+    print(ensemble)
 
 def soft_voting():
     pass
