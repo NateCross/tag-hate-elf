@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
-from torch import nn, optim
+from torch import nn, optim, device, cuda
 from skorch import NeuralNetClassifier
 from skorch.callbacks import Checkpoint, LoadInitState
 from sklearn.base import BaseEstimator, TransformerMixin
