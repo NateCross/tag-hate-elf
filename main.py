@@ -38,10 +38,9 @@ def predict(ensemble, text: str):
     else:
         return ensemble.predict_proba([text]), learner_predictions
 
-def hard_voting():
-    # ensemble_window = sg.Window()
+def loading_popup(ensemble_string: str):
     sg.PopupNonBlocking(
-        'Loading hard voting ensemble...',
+        f'Loading {ensemble_string} ensemble...',
         button_type=sg.POPUP_BUTTONS_NO_BUTTONS,
         modal=True,
         # We do auto close to keep the loading popup active
@@ -50,7 +49,16 @@ def hard_voting():
         auto_close=True,
         auto_close_duration=1,
     )
-    input_column = sg.Column([
+
+def default_table_values():
+    return [
+        ['Bernoulli Naive Bayes', '-', '-'],
+        ['LSTM', '-', '-'],
+        ['mBERT', '-', '-'],
+    ]
+
+def input_column():
+    return sg.Column([
         [sg.Text("Input text:")],
         [sg.Multiline(size=(None, 12), key='-INPUT-')],
         [
@@ -59,12 +67,9 @@ def hard_voting():
             sg.Button('Predict'),
         ],
     ])
-    table_values = [
-        ['Bernoulli Naive Bayes', '-', '-'],
-        ['LSTM', '-', '-'],
-        ['mBERT', '-', '-'],
-    ]
-    output_column = sg.Column([
+
+def output_column(table_values):
+    return sg.Column([
         [sg.Table(
             values=table_values, 
             auto_size_columns=True, 
@@ -80,17 +85,32 @@ def hard_voting():
             sg.Text('-', key='-ENSEMBLE-', justification='l'),
         ],
     ], element_justification='c')
+
+
+def hard_voting():
+    loading_popup('hard voting')
+    table_values = default_table_values()
+    input_column_element = input_column()
+    output_column_element = output_column(table_values)
     layout = [
-        [input_column, sg.VerticalSeparator(), output_column]
+        [
+            input_column_element, 
+            sg.VerticalSeparator(), 
+            output_column_element,
+        ]
     ]
+
     ensemble = load_ensemble('ensemble-hard.pkl')
     if not ensemble:
         return
+
     window = sg.Window(
         'Hard Voting Ensemble',
         layout,
         modal=True,
     )
+
+    # Event Loop
     while True:
         event, values = window.read()
 
@@ -112,18 +132,100 @@ def hard_voting():
     window.close()
 
 def soft_voting():
-    pass
+    loading_popup('soft voting')
+    table_values = default_table_values()
+    input_column_element = input_column()
+    output_column_element = output_column(table_values)
+    layout = [
+        [
+            input_column_element, 
+            sg.VerticalSeparator(), 
+            output_column_element,
+        ]
+    ]
+
+    ensemble = load_ensemble('ensemble-soft.pkl')
+    if not ensemble:
+        return
+
+    window = sg.Window(
+        'Soft Voting Ensemble',
+        layout,
+        modal=True,
+    )
+
+    # Event Loop
+    while True:
+        event, values = window.read()
+
+        if event == 'Predict':
+            result, learner_predictions = predict(
+                ensemble, 
+                values['-INPUT-']
+            )
+            table_values[0][1:] = learner_predictions[0][0]
+            table_values[1][1:] = learner_predictions[1][0]
+            table_values[2][1:] = learner_predictions[2][0]
+            window['-ENSEMBLE-'].update(result[0])
+            window['-TABLE-'].update(table_values)
+        elif event == sg.WIN_CLOSED or event == 'Exit':
+            break
+
+    window.close()
 
 def stacking():
-    pass
+    loading_popup('stacking')
+    table_values = default_table_values()
+    input_column_element = input_column()
+    output_column_element = output_column(table_values)
+    layout = [
+        [
+            input_column_element, 
+            sg.VerticalSeparator(), 
+            output_column_element,
+        ]
+    ]
+
+    ensemble = load_ensemble('ensemble-stacking.pkl')
+    if not ensemble:
+        return
+
+    window = sg.Window(
+        'Stacking Ensemble',
+        layout,
+        modal=True,
+    )
+
+    # Event Loop
+    while True:
+        event, values = window.read()
+
+        if event == 'Predict':
+            result, learner_predictions = predict(
+                ensemble, 
+                values['-INPUT-']
+            )
+            table_values[0][1:] = learner_predictions[0][0]
+            table_values[1][1:] = learner_predictions[1][0]
+            table_values[2][1:] = learner_predictions[2][0]
+            window['-ENSEMBLE-'].update(result[0])
+            window['-TABLE-'].update(table_values)
+        elif event == sg.WIN_CLOSED or event == 'Exit':
+            break
+
+    window.close()
 
 def event_loop(window: sg.Window):
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == 'Exit': # if user closes window or clicks cancel
             break
-        if event == 'Hard Voting':
+        elif event == 'Hard Voting':
             hard_voting()
+        elif event == 'Soft Voting':
+            soft_voting()
+        elif event == 'Stacking':
+            stacking()
 
 def main_window():
     button_frame = sg.Frame(
