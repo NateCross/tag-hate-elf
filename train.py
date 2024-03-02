@@ -96,9 +96,6 @@ def get_train_test_split(data_frame: pd.DataFrame):
         random_state=42,
     )
 
-    # y_train = y_train.float()
-    # y_test = y_test.float()
-
     return X_train, X_test, y_train, y_test
 
 def train_ensemble(X_train: list, y_train: list, ensemble):
@@ -127,6 +124,12 @@ def get_prediction_results(X_test: list, y_test: list, ensemble):
         ensemble (VotingClassifier | StackingClassifier):
             A trained hard voting, soft voting, or stacking 
             ensemble from scikit-learn
+
+    Returns:
+        accuracy (float)
+        recall (float)
+        precision (float)
+        f1 (float)
     """
     with torch.inference_mode():
         y_pred = ensemble.predict(X_test)
@@ -174,7 +177,11 @@ if __name__ == "__main__":
 
     ENSEMBLE = train_ensemble(X_train, y_train, ENSEMBLE)
 
-    accuracy, recall, precision, f1 = get_prediction_results(X_test, y_test, ENSEMBLE)
+    accuracy, recall, precision, f1 = get_prediction_results(
+        X_test, 
+        y_test, 
+        ENSEMBLE,
+    )
 
     print(f"Accuracy: {accuracy}")
     print(f"Recall: {recall}")
@@ -184,5 +191,4 @@ if __name__ == "__main__":
     save_trained_model(ENSEMBLE, f'ensemble-{ENSEMBLE_METHOD}')
 
     print("Saved ensemble to disk")
-
 

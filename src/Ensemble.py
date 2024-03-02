@@ -10,6 +10,9 @@ def initialize_estimators():
     ]
 
 _regression = LogisticRegression()
+"""
+Final estimator for stacking ensemble only.
+"""
 
 def HardVotingEnsemble():
     return VotingClassifier(
