@@ -87,6 +87,21 @@ def output_column(table_values):
         ],
     ], element_justification='c')
 
+def check_language(text):
+    try:
+        # Detect the language of the text
+        lang = detect(text)
+    except LangDetectException:
+        # Return False if language detection fails
+        return False
+    # Return True if the text is in English or Tagalog, False otherwise
+    return lang in ['en', 'tl']
+
+def predict_with_language_check(ensemble, text: str):
+    if not check_language(text):
+        sg.PopupError('Error: Input must be in English or Tagalog.', title='Language Error')
+        return None, None  # Return None to indicate that no prediction was made
+    return predict(ensemble, text)
 
 def hard_voting():
     loading_popup('hard voting')
@@ -120,7 +135,7 @@ def hard_voting():
                 window['-ENSEMBLE-'].update('-')
                 window['-TABLE-'].update(default_table_values())
                 continue
-            result, learner_predictions = predict(
+            result, learner_predictions = predict_with_language_check(
                 ensemble, 
                 values['-INPUT-']
             )
@@ -168,7 +183,7 @@ def soft_voting():
                 window['-ENSEMBLE-'].update('-')
                 window['-TABLE-'].update(default_table_values())
                 continue
-            result, learner_predictions = predict(
+            result, learner_predictions = predict_with_language_check(
                 ensemble, 
                 values['-INPUT-']
             )
@@ -214,7 +229,7 @@ def stacking():
                 window['-ENSEMBLE-'].update('-')
                 window['-TABLE-'].update(default_table_values())
                 continue
-            result, learner_predictions = predict(
+            result, learner_predictions = predict_with_language_check(
                 ensemble, 
                 values['-INPUT-']
             )
@@ -276,26 +291,8 @@ def main_window():
     # Create the Window
     window = sg.Window('TAG-HATE-ELF', layout, element_justification='c')
 
-    while True:
-        event, values = window.read()
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            break
+    event_loop(window)
 
-        if event in ['-HARD_VOTING-', '-SOFT_VOTING-', '-STACKING-']:
-            input_text = values['-INPUT-']
-            if input_text.strip():  # Check if the input is not just whitespace
-                try:
-                    lang = detect(input_text)
-                    if lang not in ['en', 'tl']:  # 'en' for English, 'tl' for Tagalog
-                        sg.popup_error('Error: Input must be in English or Tagalog.', title='Language Error')
-                        continue  # Skip further processing
-                except LangDetectException:
-                    sg.popup_error('Error: Language detection failed. Please ensure the input is not empty and try again.', title='Detection Error')
-                    continue
-                # Proceed with prediction and other logic if the input is in English or Tagalog
-            else:
-                sg.popup_error('Error: Please enter some text before predicting.', title='Input Error')
-                
     window.close()
 
 
