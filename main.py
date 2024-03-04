@@ -6,6 +6,8 @@ import joblib
 from sklearn.ensemble import VotingClassifier
 from PIL import Image, ImageTk
 import io
+from src import Utils
+from langdetect import detect, LangDetectException
 
 def load_ensemble(filename: str):
     try:
@@ -274,7 +276,25 @@ def main_window():
     # Create the Window
     window = sg.Window('TAG-HATE-ELF', layout, element_justification='c')
 
-    event_loop(window)
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            break
+
+        if event in ['-HARD_VOTING-', '-SOFT_VOTING-', '-STACKING-']:
+            input_text = values['-INPUT-']
+            if input_text.strip():  # Check if the input is not just whitespace
+                try:
+                    lang = detect(input_text)
+                    if lang not in ['en', 'tl']:  # 'en' for English, 'tl' for Tagalog
+                        sg.popup_error('Error: Input must be in English or Tagalog.', title='Language Error')
+                        continue  # Skip further processing
+                except LangDetectException:
+                    sg.popup_error('Error: Language detection failed. Please ensure the input is not empty and try again.', title='Detection Error')
+                    continue
+                # Proceed with prediction and other logic if the input is in English or Tagalog
+            else:
+                sg.popup_error('Error: Please enter some text before predicting.', title='Input Error')
 
     window.close()
 
