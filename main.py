@@ -139,7 +139,7 @@ def hard_voting():
                 ensemble, 
                 values['-INPUT-']
             )
-            if result == None: continue
+            if result is None: continue
             table_values[0][1:] = learner_predictions[0][0]
             table_values[1][1:] = learner_predictions[1][0]
             table_values[2][1:] = learner_predictions[2][0]
@@ -188,7 +188,7 @@ def soft_voting():
                 ensemble, 
                 values['-INPUT-']
             )
-            if result == None: continue
+            if result is None: continue
             table_values[0][1:] = learner_predictions[0][0]
             table_values[1][1:] = learner_predictions[1][0]
             table_values[2][1:] = learner_predictions[2][0]
@@ -235,7 +235,7 @@ def stacking():
                 ensemble, 
                 values['-INPUT-']
             )
-            if result == None: continue
+            if result is None: continue
             table_values[0][1:] = learner_predictions[0][0]
             table_values[1][1:] = learner_predictions[1][0]
             table_values[2][1:] = learner_predictions[2][0]
