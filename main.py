@@ -13,7 +13,7 @@ def load_ensemble(filename: str):
         ensemble = joblib.load(filename)
     except FileNotFoundError:
         sg.PopupError(
-            f'ERROR: "{filename}" not found. Please train a hard voting ensemble first.'
+            f'ERROR: "{filename}" not found. Please train the ensemble first.'
         )
         return None
     return ensemble
@@ -115,6 +115,10 @@ def hard_voting():
         event, values = window.read()
 
         if event == 'Predict':
+            if not values['-INPUT-']:
+                window['-ENSEMBLE-'].update('-')
+                window['-TABLE-'].update(default_table_values())
+                continue
             result, learner_predictions = predict(
                 ensemble, 
                 values['-INPUT-']
@@ -159,6 +163,10 @@ def soft_voting():
         event, values = window.read()
 
         if event == 'Predict':
+            if not values['-INPUT-']:
+                window['-ENSEMBLE-'].update('-')
+                window['-TABLE-'].update(default_table_values())
+                continue
             result, learner_predictions = predict(
                 ensemble, 
                 values['-INPUT-']
@@ -201,6 +209,10 @@ def stacking():
         event, values = window.read()
 
         if event == 'Predict':
+            if not values['-INPUT-']:
+                window['-ENSEMBLE-'].update('-')
+                window['-TABLE-'].update(default_table_values())
+                continue
             result, learner_predictions = predict(
                 ensemble, 
                 values['-INPUT-']
