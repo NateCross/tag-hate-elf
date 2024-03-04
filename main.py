@@ -295,7 +295,7 @@ def main_window():
                 # Proceed with prediction and other logic if the input is in English or Tagalog
             else:
                 sg.popup_error('Error: Please enter some text before predicting.', title='Input Error')
-
+                
     window.close()
 
 
