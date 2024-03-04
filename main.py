@@ -1,12 +1,11 @@
 import warnings
 warnings.filterwarnings('ignore')
-from transformers import logging
-logging.set_verbosity_error()
 
 import PySimpleGUI as sg
 import joblib
 from sklearn.ensemble import VotingClassifier
-from src import Utils
+from PIL import Image, ImageTk
+import io
 
 def load_ensemble(filename: str):
     try:
@@ -239,49 +238,41 @@ def event_loop(window: sg.Window):
         elif event == 'Stacking':
             stacking()
 
+# Function to resize an image using PIL
+def get_resized_image(image_path, width, height):
+    image = Image.open(image_path)
+    image = image.resize((width, height), Image.Resampling.LANCZOS)  # High-quality downsampling filter
+    bio = io.BytesIO()
+    image.save(bio, format="PNG")
+    return bio.getvalue()
+
 def main_window():
+    sg.theme('LightBlue5')
+
+    # Define a frame for the buttons arranged horizontally
     button_frame = sg.Frame(
-        'Select an Ensemble below:',
+        'Select an Ensemble:',
         layout=[
-            [           
-                sg.Button(
-                    'Hard Voting',
-                ),
-            ],
             [
-                sg.Button(
-                    'Soft Voting',
-                ),
-            ],
-            [
-                sg.Button(
-                    'Stacking',
-                ),
+                sg.Button('Hard Voting', size=(15, 1), font=('Helvetica', 12)),
+                sg.Button('Soft Voting', size=(15, 1), font=('Helvetica', 12)),
+                sg.Button('Stacking', size=(15, 1), font=('Helvetica', 12))
             ],
         ],
         element_justification='c',
-        
+        relief=sg.RELIEF_SUNKEN
     )
 
+    resized_logo = get_resized_image('logo.png', width=150, height=150)
+
     layout = [
-        [
-            sg.Text(
-                'TAG-HATE-ELF',
-                justification='c',
-            ),
-        ],
+        [sg.Image(data=resized_logo)],
         [button_frame],
-        [
-            sg.Exit(),
-        ],
+        [sg.Exit(size=(10, 1), pad=((0, 0), (10, 0)))]
     ]
 
     # Create the Window
-    window = sg.Window(
-        'TAG-HATE-ELF', 
-        layout,
-        element_justification='c',
-    )
+    window = sg.Window('TAG-HATE-ELF', layout, element_justification='c')
 
     event_loop(window)
 
