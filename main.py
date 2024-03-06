@@ -1,10 +1,8 @@
-import warnings
-warnings.filterwarnings('ignore')
-
+import numpy as np
 import PySimpleGUI as sg
 import joblib
 from sklearn.ensemble import VotingClassifier
-from PIL import Image, ImageTk
+from PIL import Image
 import io
 from src import Utils
 from langdetect import detect, LangDetectException
@@ -31,13 +29,16 @@ def clean_text(text: str):
 def predict(ensemble, text: str):
     text = clean_text(text)
     learner_predictions = [
-        estimator.predict_proba([text])
+        np.round(estimator.predict_proba([text]), 4)
         for estimator in ensemble.estimators_
     ]
     if isinstance(ensemble, VotingClassifier) and ensemble.voting == 'hard':
         return ensemble.predict([text]), learner_predictions
     else:
-        return ensemble.predict_proba([text]), learner_predictions
+        return (
+            np.round(ensemble.predict_proba([text]), 4), 
+            learner_predictions,
+        )
 
 def loading_popup(ensemble_string: str):
     sg.PopupNonBlocking(
@@ -53,7 +54,7 @@ def loading_popup(ensemble_string: str):
 
 def default_table_values():
     return [
-        ['Bernoulli Naive Bayes', '-', '-'],
+        ['BNB', '-', '-'],
         ['LSTM', '-', '-'],
         ['mBERT', '-', '-'],
     ]
@@ -61,7 +62,7 @@ def default_table_values():
 def input_column():
     return sg.Column([
         [sg.Text("Input text:")],
-        [sg.Multiline(size=(None, 12), key='-INPUT-')],
+        [sg.Multiline(size=(None, 8), key='-INPUT-')],
         [
             sg.Exit(),
             sg.Push(),
@@ -73,7 +74,11 @@ def output_column(table_values):
     return sg.Column([
         [sg.Table(
             values=table_values, 
-            auto_size_columns=True, 
+            auto_size_columns=True,
+            hide_vertical_scroll=True,
+            justification='center',
+            cols_justification=('r', 'c', 'c'),
+            num_rows=3,
             key='-TABLE-',
             headings=(
                 'Learner',
@@ -192,7 +197,9 @@ def soft_voting():
             table_values[0][1:] = learner_predictions[0][0]
             table_values[1][1:] = learner_predictions[1][0]
             table_values[2][1:] = learner_predictions[2][0]
-            window['-ENSEMBLE-'].update(result[0])
+            window['-ENSEMBLE-'].update(
+                f"Non-hate - {result[0][0]} | Hate - {result[0][1]}"
+            )
             window['-TABLE-'].update(table_values)
         elif event == sg.WIN_CLOSED or event == 'Exit':
             break
@@ -239,7 +246,9 @@ def stacking():
             table_values[0][1:] = learner_predictions[0][0]
             table_values[1][1:] = learner_predictions[1][0]
             table_values[2][1:] = learner_predictions[2][0]
-            window['-ENSEMBLE-'].update(result[0])
+            window['-ENSEMBLE-'].update(
+                f"Non-hate - {result[0][0]} | Hate - {result[0][1]}"
+            )
             window['-TABLE-'].update(table_values)
         elif event == sg.WIN_CLOSED or event == 'Exit':
             break
