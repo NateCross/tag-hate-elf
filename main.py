@@ -6,6 +6,7 @@ from PIL import Image
 import io
 from src import Utils
 from langdetect import detect_langs, LangDetectException, DetectorFactory
+import gc
 
 # Seed langdetect to make it more deterministic
 DetectorFactory.seed = 0
@@ -164,6 +165,9 @@ def hard_voting():
             break
 
     window.close()
+    layout = None
+    window = None
+    gc.collect()
 
 def soft_voting():
     loading_popup('soft voting')
@@ -213,6 +217,9 @@ def soft_voting():
             break
 
     window.close()
+    layout = None
+    window = None
+    gc.collect()
 
 def stacking():
     loading_popup('stacking')
@@ -262,6 +269,9 @@ def stacking():
             break
 
     window.close()
+    layout = None
+    window = None
+    gc.collect()
 
 def event_loop(window: sg.Window):
     while True:
