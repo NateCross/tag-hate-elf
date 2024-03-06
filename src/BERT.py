@@ -83,7 +83,7 @@ Create a callback that loads the checkpoint.
 BertNet = NeuralNetClassifier(
     BertModel,
     criterion=Criterion,
-    batch_size=5,
+    batch_size=25,
     optimizer=Optimizer,
     optimizer__lr=0.00001,
     optimizer__weight_decay=0.01,
