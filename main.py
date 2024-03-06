@@ -5,7 +5,10 @@ from sklearn.ensemble import VotingClassifier
 from PIL import Image
 import io
 from src import Utils
-from langdetect import detect, LangDetectException
+from langdetect import detect_langs, LangDetectException, DetectorFactory
+
+# Seed langdetect to make it more deterministic
+DetectorFactory.seed = 0
 
 def load_ensemble(filename: str):
     try:
@@ -62,7 +65,7 @@ def default_table_values():
 def input_column():
     return sg.Column([
         [sg.Text("Input text:")],
-        [sg.Multiline(size=(None, 8), key='-INPUT-')],
+        [sg.Multiline(size=(40, 8), key='-INPUT-')],
         [
             sg.Exit(),
             sg.Push(),
@@ -95,16 +98,21 @@ def output_column(table_values):
 def check_language(text):
     try:
         # Detect the language of the text
-        lang = detect(text)
+        langs = detect_langs(text)
     except LangDetectException:
         # Return False if language detection fails
         return False
     # Return True if the text is in English or Tagalog, False otherwise
-    return lang in ['en', 'tl']
+    # Implementing like this over detect to allow for text
+    # where en or tl are not the most prominent language
+    return any(lang.lang in ['en', 'tl'] for lang in langs)
 
 def predict_with_language_check(ensemble, text: str):
     if not check_language(text):
-        sg.PopupError('Error: Input must be in English or Tagalog.', title='Language Error')
+        sg.PopupError(
+            'Error: Input must be in English or Tagalog.', 
+            title='Language Error'
+        )
         return None, None  # Return None to indicate that no prediction was made
     return predict(ensemble, text)
 
