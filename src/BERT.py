@@ -1,6 +1,6 @@
 from sklearn.pipeline import Pipeline
 from transformers import BertForSequenceClassification
-from torch import nn, device, cuda
+from torch import nn, device, cuda, optim
 from skorch import NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
 from skorch.callbacks import Checkpoint, LoadInitState
@@ -61,6 +61,12 @@ This was chosen over BCELoss because BCELoss does not have the
 right output shape.
 """
 
+Optimizer = optim.Adam
+"""
+Implements the Adam algorithm as the optimizer,
+commonly used in text classification problems.
+"""
+
 checkpoint = Checkpoint(
     monitor='train_loss_best',
     dirname='train_bert',
@@ -77,8 +83,10 @@ Create a callback that loads the checkpoint.
 BertNet = NeuralNetClassifier(
     BertModel,
     criterion=Criterion,
-    batch_size=100,
+    batch_size=5,
+    optimizer=Optimizer,
     optimizer__lr=0.00001,
+    optimizer__weight_decay=0.01,
     device=_device,
     callbacks=[
         checkpoint, 

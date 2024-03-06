@@ -70,7 +70,7 @@ right output shape.
 Optimizer = optim.Adam
 """
 Implements the Adam algorithm as the optimizer,
-commonly used in LSTM text classification problems.
+commonly used in text classification problems.
 """
 
 checkpoint = Checkpoint(
