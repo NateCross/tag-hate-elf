@@ -12,6 +12,15 @@ import gc
 DetectorFactory.seed = 0
 
 def load_ensemble(filename: str):
+    """
+    Loads a pre-trained ensemble model from a specified file.
+
+    Parameters:
+    - filename (str): The path to the file containing the saved ensemble model.
+
+    Returns:
+    - The loaded ensemble model if the file is found, otherwise None.
+    """
     try:
         ensemble = joblib.load(filename)
     except FileNotFoundError:
@@ -22,6 +31,15 @@ def load_ensemble(filename: str):
     return ensemble
 
 def clean_text(text: str):
+    """
+    Processes the input text by removing unnecessary characters and sequences.
+
+    Parameters:
+    - text (str): The input text to be cleaned.
+
+    Returns:
+    - A cleaned version of the input text.
+    """
     text = Utils.unmark(text)
     text = Utils.remove_urls(text)
     text = Utils.remove_usernames(text)
@@ -31,6 +49,16 @@ def clean_text(text: str):
     return text
 
 def predict(ensemble, text: str):
+    """
+    Predicts the class of the input text using the ensemble model.
+
+    Parameters:
+    - ensemble: The ensemble model used for prediction.
+    - text (str): The input text to classify.
+
+    Returns:
+    - The prediction result and the individual learner predictions.
+    """
     text = clean_text(text)
     learner_predictions = [
         np.round(estimator.predict_proba([text]), 4)
@@ -45,6 +73,12 @@ def predict(ensemble, text: str):
         )
 
 def loading_popup(ensemble_string: str):
+    """
+    Displays a non-blocking popup indicating that an ensemble model is being loaded.
+
+    Parameters:
+    - ensemble_string (str): A string representing the type of ensemble being loaded.
+    """
     sg.PopupNonBlocking(
         f'Loading {ensemble_string} ensemble...',
         button_type=sg.POPUP_BUTTONS_NO_BUTTONS,
@@ -57,6 +91,12 @@ def loading_popup(ensemble_string: str):
     )
 
 def default_table_values():
+    """
+    Defines default values for the table in the GUI.
+
+    Returns:
+    - A list of lists representing the default table values.
+    """
     return [
         ['BNB', '-', '-'],
         ['LSTM', '-', '-'],
@@ -64,6 +104,12 @@ def default_table_values():
     ]
 
 def input_column():
+    """
+    Creates the GUI column for inputting text.
+
+    Returns:
+    - A PySimpleGUI Column element containing the input text field and buttons.
+    """
     return sg.Column([
         [sg.Text("Input text:")],
         [sg.Multiline(size=(40, 8), key='-INPUT-')],
@@ -75,6 +121,15 @@ def input_column():
     ])
 
 def output_column(table_values):
+    """
+    Creates the GUI column for displaying output.
+
+    Parameters:
+    - table_values: The values to display in the output table.
+
+    Returns:
+    - A PySimpleGUI Column element containing the output table.
+    """
     return sg.Column([
         [sg.Table(
             values=table_values, 
@@ -97,6 +152,15 @@ def output_column(table_values):
     ], element_justification='c')
 
 def check_language(text):
+    """
+    Checks the language of the input text.
+
+    Parameters:
+    - text (str): The input text to check.
+
+    Returns:
+    - True if the text is in English or Tagalog, False otherwise.
+    """
     try:
         # Detect the language of the text
         langs = detect_langs(text)
@@ -109,6 +173,17 @@ def check_language(text):
     return any(lang.lang in ['en', 'tl'] for lang in langs)
 
 def predict_with_language_check(ensemble, text: str):
+    """
+    Performs a language check before predicting the class of the input text.
+
+    Parameters:
+    - ensemble: The ensemble model used for prediction.
+    - text (str): The input text to classify.
+
+    Returns:
+    - The prediction result and the individual learner predictions, or None if the
+    language check fails.
+    """
     if not check_language(text):
         sg.PopupError(
             'Error: Input must be in English or Tagalog.', 
@@ -116,6 +191,9 @@ def predict_with_language_check(ensemble, text: str):
         )
         return None, None  # Return None to indicate that no prediction was made
     return predict(ensemble, text)
+
+# The following functions, `hard_voting`, `soft_voting`, `stacking`, and `event_loop`,
+# define different ensemble strategies and handle the GUI event loop.
 
 def hard_voting():
     loading_popup('hard voting')
@@ -287,6 +365,17 @@ def event_loop(window: sg.Window):
 
 # Function to resize an image using PIL
 def get_resized_image(image_path, width, height):
+    """
+    Resizes an image to specified dimensions using PIL.
+
+    Parameters:
+    - image_path (str): Path to the image file.
+    - width (int): Desired width of the resized image.
+    - height (int): Desired height of the resized image.
+
+    Returns:
+    - A byte representation of the resized image.
+    """
     image = Image.open(image_path)
     image = image.resize((width, height), Image.Resampling.LANCZOS)  # High-quality downsampling filter
     bio = io.BytesIO()
@@ -294,6 +383,9 @@ def get_resized_image(image_path, width, height):
     return bio.getvalue()
 
 def main_window():
+    """
+    Initializes and displays the main window of the GUI application.
+    """
     sg.theme('LightBlue5')
 
     # Define a frame for the buttons arranged horizontally
