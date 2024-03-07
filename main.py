@@ -374,7 +374,7 @@ def get_resized_image(image_path, width, height):
     - height (int): Desired height of the resized image.
 
     Returns:
-    - A byte representation of the resized image.
+    - A byte representation of the resized image. 
     """
     image = Image.open(image_path)
     image = image.resize((width, height), Image.Resampling.LANCZOS)  # High-quality downsampling filter
