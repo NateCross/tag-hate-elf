@@ -56,14 +56,7 @@ def read_csv_file(filename: str) -> pd.DataFrame:
         return pd.read_csv(
             filename, 
             lineterminator='\n',
-            header=0,
-            names=[
-                'text',
-                'label'
-            ],
-            dtype={
-                'label': float,
-            },
+            usecols=(range(2)),
         )
     except FileNotFoundError:
         print("ERROR: File not found")
