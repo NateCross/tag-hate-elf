@@ -87,7 +87,7 @@ BertNet = NeuralNetClassifier(
     batch_size=25,
     optimizer=Optimizer,
     optimizer__lr=0.00001,
-    optimizer__weight_decay=0.01,
+    # optimizer__weight_decay=0.01,
     device=_device,
     callbacks=[
         checkpoint, 
