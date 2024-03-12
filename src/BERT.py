@@ -81,6 +81,8 @@ load_state = LoadInitState(checkpoint)
 Create a callback that loads the checkpoint.
 """
 
+progress_bar = ProgressBar()
+
 BertNet = NeuralNetClassifier(
     BertModel,
     criterion=Criterion,
@@ -92,6 +94,7 @@ BertNet = NeuralNetClassifier(
     callbacks=[
         checkpoint, 
         load_state,
+        progress_bar,
     ],
     train_split=None, # Fixes numpy.exceptions.AxisError in training
                       # Anyways, data is assumed to be already split
