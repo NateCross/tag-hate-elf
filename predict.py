@@ -7,7 +7,7 @@ from sklearn.ensemble import VotingClassifier
 import joblib
 
 if __name__ == "__main__":
-    ensemble = joblib.load('LSTM.pkl')
+    ensemble = joblib.load('model_lstm/LSTM.pkl')
     quotes = [
         "Gago ka putang ina", 
         'OIDAjodiajisjdai', 

@@ -74,8 +74,9 @@ commonly used in text classification problems.
 """
 
 checkpoint = Checkpoint(
+    # monitor='valid_loss_best',
     monitor='train_loss_best',
-    dirname='train_lstm',
+    dirname='model_lstm/train_lstm',
     load_best=True,
 )
 """
@@ -137,7 +138,7 @@ LstmNet = NeuralNetClassifier(
         load_state,
         progress_bar,
     ],
-    train_split=None, # Fixes numpy.exceptions.AxisError in training
+    # train_split=None, # Fixes numpy.exceptions.AxisError in training
                     # Anyways, data is assumed to be already split
 )
 """

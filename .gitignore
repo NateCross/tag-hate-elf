@@ -23,3 +23,8 @@ history.json
 
 train_bert/*
 train_lstm/*
+
+model_lstm/*
+model_bert/*
+
+.vscode/*

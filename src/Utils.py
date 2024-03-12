@@ -164,3 +164,9 @@ def seed_random_number_generators(seed=0):
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     print("Random number generators seeded.")
+
+def save_history_to_csv(model, pipeline_model_name, filename):
+    data_frame = pd.DataFrame(
+        model[pipeline_model_name].history
+    ).set_index('epoch')
+    data_frame.to_csv(filename)
