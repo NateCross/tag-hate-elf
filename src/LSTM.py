@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from torch import nn, optim, device, cuda
 from skorch import NeuralNetClassifier
-from skorch.callbacks import Checkpoint, LoadInitState
+from skorch.callbacks import Checkpoint, LoadInitState, ProgressBar
 from sklearn.base import BaseEstimator, TransformerMixin
 import calamancy
 
@@ -76,6 +76,7 @@ commonly used in text classification problems.
 checkpoint = Checkpoint(
     monitor='train_loss_best',
     dirname='train_lstm',
+    load_best=True,
 )
 """
 Checkpoint is used to save and load training progress.
@@ -85,6 +86,8 @@ load_state = LoadInitState(checkpoint)
 """
 Create a callback that loads the checkpoint.
 """
+
+progress_bar = ProgressBar()
 
 class CalamancyTokenizer(BaseEstimator, TransformerMixin):
     """
@@ -124,7 +127,7 @@ LstmNet = NeuralNetClassifier(
     module__hidden_size=400,
     optimizer__lr=0.015,
     optimizer__weight_decay=0.00001,
-    max_epochs=50,
+    max_epochs=100,
     criterion=Criterion,
     optimizer=Optimizer,
     batch_size=32,
@@ -132,6 +135,7 @@ LstmNet = NeuralNetClassifier(
     callbacks=[
         checkpoint, 
         load_state,
+        progress_bar,
     ],
     train_split=None, # Fixes numpy.exceptions.AxisError in training
                     # Anyways, data is assumed to be already split

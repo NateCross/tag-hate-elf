@@ -7,7 +7,7 @@ from sklearn.ensemble import VotingClassifier
 import joblib
 
 if __name__ == "__main__":
-    ensemble = joblib.load('ensemble.pkl')
+    ensemble = joblib.load('LSTM.pkl')
     quotes = [
         "Gago ka putang ina", 
         'OIDAjodiajisjdai', 
@@ -15,11 +15,12 @@ if __name__ == "__main__":
         "NAKO  NAHIYA  YUNG  KAPAL  NG  PERA  NI  BINAY ", 
         "fuck you binay gago ka",
     ]
-    for estimator in ensemble.estimators_:
-        print(estimator.predict_proba(quotes))
-    if isinstance(ensemble, VotingClassifier) and ensemble.voting == 'hard':
-        print(ensemble.predict(quotes))
-    else:
-        print(ensemble.predict_proba(quotes))
+    print(ensemble.predict_proba(quotes))
+    # for estimator in ensemble.estimators_:
+    #     print(estimator.predict_proba(quotes))
+    # if isinstance(ensemble, VotingClassifier) and ensemble.voting == 'hard':
+    #     print(ensemble.predict(quotes))
+    # else:
+    #     print(ensemble.predict_proba(quotes))
 
     exit(0)
