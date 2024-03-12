@@ -74,8 +74,8 @@ commonly used in text classification problems.
 """
 
 checkpoint = Checkpoint(
-    # monitor='valid_loss_best',
-    monitor='train_loss_best',
+    monitor='valid_loss_best',
+    # monitor='train_loss_best',
     dirname='model_lstm/train_lstm',
     load_best=True,
 )

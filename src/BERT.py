@@ -70,6 +70,7 @@ commonly used in text classification problems.
 checkpoint = Checkpoint(
     monitor='train_loss_best',
     dirname='train_bert',
+    load_best=True,
 )
 """
 Checkpoint is used to save and load training progress.
