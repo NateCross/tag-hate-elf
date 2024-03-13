@@ -3,7 +3,7 @@ from transformers import BertForSequenceClassification
 from torch import nn, device, cuda, optim
 from skorch import NeuralNetClassifier
 from skorch.hf import HuggingfacePretrainedTokenizer
-from skorch.callbacks import Checkpoint, LoadInitState
+from skorch.callbacks import Checkpoint, LoadInitState, ProgressBar
 
 # _device = "cpu"
 _device = device("cuda" if cuda.is_available() else "cpu")

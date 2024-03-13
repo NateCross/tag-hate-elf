@@ -148,8 +148,12 @@ def get_train_test_split(data_frame: pd.DataFrame, test_size: float):
     combined_train = pd.concat([nonhate_row_train, hate_row_train])
     combined_test = pd.concat([nonhate_row_test, hate_row_test])
 
+    assert(len(combined_train) + len(combined_test) == data_frame_length)
+
     shuffled_train = shuffle_data_frame(combined_train)
     shuffled_test = shuffle_data_frame(combined_test)
+
+    assert(len(shuffled_train) + len(shuffled_test) == data_frame_length)
 
     return (
         shuffled_train['text'],
