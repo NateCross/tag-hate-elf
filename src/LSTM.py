@@ -96,8 +96,8 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
     estimator. This allows it to be used in a scikit-learn
     pipeline.
     """
-    def __init__(self):
-        pass
+    def __init__(self, remove_stopwords=False):
+        self.remove_stopwords = remove_stopwords
 
     def fit(self, _, y=None):
         return self
@@ -111,15 +111,40 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
         # Pipe is a faster way of iterating through all the data.
         # We get the vector of the tokenized text and reshape them
         # to be the right output shape.
-        result = [
-            text.vector.reshape(1, -1)
-            for text 
-            in Calamancy.pipe(data)
-        ]
+        # result = [
+        #     text.vector.reshape(1, -1)
+        #     for text 
+        #     in Calamancy.pipe(data)
+        # ]
+        result = []
+        for doc in Calamancy.pipe(data):
+            if self.remove_stopwords:
+                tokens = [
+                    token 
+                    for token 
+                    in doc
+                    if not token.is_stop
+                ]
+            else:
+                tokens = [
+                    token 
+                    for token 
+                    in doc
+                ]
+
+            if not tokens:
+                doc_vector = np.zeros((1, 200))
+            else:
+                doc_vector = np.mean(
+                    [token.vector for token in tokens], 
+                    axis=0
+                ).reshape(1, -1)
+            
+            result.append(doc_vector)
 
         # Concatenate all of them to form tensors of the right
         # output shape.
-        result = np.concatenate(result)
+        result = np.concatenate(result).astype('float32')
 
         return result
 

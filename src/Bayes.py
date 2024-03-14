@@ -3,7 +3,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from os.path import dirname
 
-BayesModel = BernoulliNB()
+BayesModel = BernoulliNB(
+    force_alpha=True,
+)
 """
 Bernoulli Naive Bayes estimator from scikit-learn
 """
@@ -28,7 +30,7 @@ https://github.com/stopwords-iso/stopwords-tl/blob/master/stopwords-tl.txt
 """
 
 Vectorizer = TfidfVectorizer(
-    stop_words=STOP_WORDS,
+    # stop_words=STOP_WORDS,
 )
 """
 We need to transform text into numerical values

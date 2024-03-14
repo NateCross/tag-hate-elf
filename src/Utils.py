@@ -12,6 +12,7 @@ from sklearn.metrics import (
 )
 import torch
 import math
+from os.path import dirname
 
 # Function to convert markdown formatted text to plain text
 def unmark_element(element, stream=None):
@@ -174,3 +175,10 @@ def save_history_to_csv(model, pipeline_model_name, filename):
         model[pipeline_model_name].history
     ).set_index('epoch')
     data_frame.to_csv(filename)
+
+def get_stop_words():
+    STOP_WORDS = open(
+        f"{dirname(__file__)}/stopwords-tl.txt", 
+        "r",
+    ).read().split('\n')
+    return STOP_WORDS
