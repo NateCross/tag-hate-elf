@@ -1,6 +1,6 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from os.path import dirname
 
 BayesModel = BernoulliNB(
@@ -29,7 +29,7 @@ List taken from:
 https://github.com/stopwords-iso/stopwords-tl/blob/master/stopwords-tl.txt
 """
 
-Vectorizer = TfidfVectorizer(
+Vectorizer = CountVectorizer(
     # stop_words=STOP_WORDS,
 )
 """
