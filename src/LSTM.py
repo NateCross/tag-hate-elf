@@ -56,7 +56,7 @@ class LstmModel(nn.Module):
         lstm_out, _ = self.lstm(input)
         output = self.fc(lstm_out)
 
-        return output
+        return output.squeeze(1)
 
 Criterion = nn.CrossEntropyLoss
 """
@@ -96,8 +96,8 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
     estimator. This allows it to be used in a scikit-learn
     pipeline.
     """
-    def __init__(self, remove_stopwords=False):
-        self.remove_stopwords = remove_stopwords
+    def __init__(self):
+        pass
 
     def fit(self, _, y=None):
         return self
@@ -118,19 +118,19 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
         # ]
         result = []
         for doc in Calamancy.pipe(data):
-            if self.remove_stopwords:
-                tokens = [
-                    token 
-                    for token 
-                    in doc
-                    if not token.is_stop
-                ]
-            else:
-                tokens = [
-                    token 
-                    for token 
-                    in doc
-                ]
+            # if self.remove_stopwords:
+            #     tokens = [
+            #         token 
+            #         for token 
+            #         in doc
+            #         if not token.is_stop
+            #     ]
+            # else:
+            tokens = [
+                token 
+                for token 
+                in doc
+            ]
 
             if not tokens:
                 doc_vector = np.zeros((1, 200))

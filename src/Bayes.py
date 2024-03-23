@@ -3,9 +3,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from os.path import dirname
 
-BayesModel = BernoulliNB(
-    force_alpha=True,
-)
+BayesModel = BernoulliNB()
 """
 Bernoulli Naive Bayes estimator from scikit-learn
 """

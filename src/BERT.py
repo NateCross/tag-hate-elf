@@ -86,7 +86,7 @@ progress_bar = ProgressBar()
 BertNet = NeuralNetClassifier(
     BertModel,
     criterion=Criterion,
-    batch_size=25,
+    batch_size=10,
     optimizer=Optimizer,
     optimizer__lr=0.00001,
     # optimizer__weight_decay=0.01,
