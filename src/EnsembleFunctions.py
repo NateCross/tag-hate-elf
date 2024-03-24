@@ -34,7 +34,8 @@ def hard_voting(bayes, lstm, bert, inputs: list):
 def soft_voting(bayes, lstm, bert, inputs: list):
   preds = concatenate_predict_proba(bayes, lstm, bert, inputs)
   results = np.average(
-    preds, axis=0,
+    preds, 
+    axis=0,
   )
   return results
   

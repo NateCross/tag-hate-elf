@@ -8,7 +8,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import calamancy
 
 _device = device("cuda" if cuda.is_available() else "cpu")
-# _device = "cpu"
 """
 Set the device used by the learner.
 It automatically uses the GPU if it is available, else,
@@ -38,9 +37,9 @@ class LstmModel(nn.Module):
     def __init__(
             self, 
             input_size=200, 
-            hidden_size=400, 
+            hidden_size=300, 
             output_size=2, 
-            num_layers=2
+            num_layers=1,
         ):
         super(LstmModel, self).__init__()
         self.lstm = nn.LSTM(
@@ -56,26 +55,17 @@ class LstmModel(nn.Module):
         lstm_out, _ = self.lstm(input)
         output = self.fc(lstm_out)
 
-        return output.squeeze(1)
+        return output
 
 Criterion = nn.CrossEntropyLoss
 """
-Loss function for multilabel classification. This is desired
-so we get the right output shape to be uniform with the other
-learners.
-This was chosen over BCELoss because BCELoss does not have the
-right output shape.
+Loss function for classification
 """
 
 Optimizer = optim.Adam
-"""
-Implements the Adam algorithm as the optimizer,
-commonly used in text classification problems.
-"""
 
 checkpoint = Checkpoint(
-    monitor='valid_loss_best',
-    # monitor='train_loss_best',
+    monitor='train_loss_best',
     dirname='model_lstm/train_lstm',
     load_best=True,
 )
@@ -111,21 +101,8 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
         # Pipe is a faster way of iterating through all the data.
         # We get the vector of the tokenized text and reshape them
         # to be the right output shape.
-        # result = [
-        #     text.vector.reshape(1, -1)
-        #     for text 
-        #     in Calamancy.pipe(data)
-        # ]
         result = []
         for doc in Calamancy.pipe(data):
-            # if self.remove_stopwords:
-            #     tokens = [
-            #         token 
-            #         for token 
-            #         in doc
-            #         if not token.is_stop
-            #     ]
-            # else:
             tokens = [
                 token 
                 for token 
@@ -150,9 +127,8 @@ class CalamancyTokenizer(BaseEstimator, TransformerMixin):
 
 LstmNet = NeuralNetClassifier(
     LstmModel,
-    module__hidden_size=400,
-    optimizer__lr=0.015,
-    max_epochs=100,
+    optimizer__lr=0.02,
+    max_epochs=30,
     criterion=Criterion,
     optimizer=Optimizer,
     batch_size=32,
@@ -162,7 +138,7 @@ LstmNet = NeuralNetClassifier(
         load_state,
         progress_bar,
     ],
-    # train_split=None, # Fixes numpy.exceptions.AxisError in training
+    train_split=None, # Fixes numpy.exceptions.AxisError in training
                     # Anyways, data is assumed to be already split
 )
 """
