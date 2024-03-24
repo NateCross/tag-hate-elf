@@ -39,7 +39,7 @@ def test_bayes():
     exit()
 
 def test_lr():
-    model = joblib.load('model_lr/LR-v1.pkl')
+    model = joblib.load('model_lr/LR.pkl')
     preds = model.predict_proba([[0.01, 0.33, 0.2]])
     print(preds)
     exit()
@@ -63,8 +63,8 @@ def test_bert():
 
 
 if __name__ == "__main__":
-    # test_lr()
-    test_bayes()
+    test_lr()
+    # test_bayes()
     # test_bert()
 
     model = joblib.load('model_bayes/Bayes.pkl')

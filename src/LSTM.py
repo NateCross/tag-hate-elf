@@ -152,7 +152,6 @@ LstmNet = NeuralNetClassifier(
     LstmModel,
     module__hidden_size=400,
     optimizer__lr=0.015,
-    optimizer__weight_decay=0.00001,
     max_epochs=100,
     criterion=Criterion,
     optimizer=Optimizer,
