@@ -1,9 +1,11 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from os.path import dirname
 
-BayesModel = BernoulliNB()
+BayesModel = BernoulliNB(
+    alpha=0.3,
+)
 """
 Bernoulli Naive Bayes estimator from scikit-learn
 """

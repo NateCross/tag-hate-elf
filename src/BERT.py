@@ -80,6 +80,7 @@ BertNet = NeuralNetClassifier(
     batch_size=16,
     optimizer=Optimizer,
     optimizer__lr=5e-5,
+    max_epochs=2,
     device=_device,
     callbacks=[
         checkpoint, 
