@@ -13,15 +13,55 @@ from sklearn.metrics import accuracy_score
 BertModel = BERT.BertModel
 
 def test_bayes():
+    from sklearn.utils.extmath import safe_sparse_dot
     print("Bayes")
     model = joblib.load('model_bayes/Bayes.pkl')
+    bayes = model['bayes']
 
-    preds = model.predict(["Hi", "Gago ka putangina mo", 'a'])
+    # print(np.log(bayes.feature_count_ + 0.3) - np.log((bayes.class_count_ + 0.3 * 2).reshape(-1, 1)))
+    # print(np.log(bayes.feature_count_ + 0.3) - np.log((bayes.class_count_ + 0.3 * 2).reshape(-1, 1)))
+    # print(bayes.classes_)
+
+    # class_count = model['bayes'].class_count_
+    # print(np.log(class_count) - np.log(class_count.sum()))
+    # print(np.exp(bayes.class_log_prior_))
+
+    # exit()
+
+    print(np.log(np.exp(model['bayes'].class_log_prior_)))
+    print(model['bayes'].feature_log_prob_)
+    print(np.exp(model['bayes'].feature_log_prob_[0][22312]))
+    feature_prob = model['bayes'].feature_log_prob_
+    print("neg prob")
+    neg = np.log(1 - np.exp(model['bayes'].feature_log_prob_))
+    # print(neg)
+    print((feature_prob - neg).T[12789])
+    inverse = (feature_prob-neg).T
+    print("inverse")
+    result = inverse[10957] + inverse[15550] + inverse[22312] + inverse[30527]
+    print(np.exp(result))
+    print("clp")
+    prior = model['bayes'].class_log_prior_
+    print(prior)
+    print('result')
+    final = neg.sum(axis=1) + result + prior
+    print(final)
+    final_max = final.max()
+    print('logsumexp')
+    print(np.exp(final - final_max))
+    print(np.sum(np.exp(final - final_max)))
+    print(np.log(np.sum(np.exp(final - final_max))))
+    logsumexp_res = final_max + (np.log(np.sum(np.exp(final - final_max))))
+    print(np.exp(final - logsumexp_res))
+    # print(inverse[10957] * inverse[15550] * inverse[22312] * inverse[30527])
+
+    preds = model.predict_proba(["Hi", "Gago gago ka putangina mo mo", 'a'])
+    print(preds)
     y_result = [0, 0, 0]
 
-    result = accuracy_score(y_result, preds, sample_weight=[0.9, 0.1, 0.9])
+    # result = accuracy_score(y_result, preds, sample_weight=[0.9, 0.1, 0.9])
 
-    print(result)
+    # print(result)
 
 
 
@@ -45,8 +85,12 @@ def test_lr():
     exit()
 
 def test_bert():
+    # BertModel = 
     torch.cuda.is_available = lambda: False
     model = joblib.load('model_bert/mBERT.pkl')
+    print(model['bert'].module_.named_parameters())
+    # print(model['bert'].module.parameters())
+    exit()
     quotes = [
         "Gago gago gago gago ka putang ina", 
         "Gago ka putang ina", 
@@ -63,9 +107,9 @@ def test_bert():
 
 
 if __name__ == "__main__":
-    test_lr()
+    # test_lr()
     # test_bayes()
-    # test_bert()
+    test_bert()
 
     model = joblib.load('model_bayes/Bayes.pkl')
     print(model['tfidf'].vocabulary_['00'])
