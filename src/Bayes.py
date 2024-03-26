@@ -1,7 +1,6 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
-from os.path import dirname
 
 BayesModel = BernoulliNB(
     alpha=0.3,

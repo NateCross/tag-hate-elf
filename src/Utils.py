@@ -166,7 +166,6 @@ def get_train_test_split(data_frame: pd.DataFrame, test_size: float):
 def seed_random_number_generators(seed=0):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     print("Random number generators seeded.")
 
