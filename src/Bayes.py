@@ -33,6 +33,11 @@ def patched_analyze(
 
 text._analyze = patched_analyze
 
+def get_tokenized_text(self):
+    return text.tokenized_text
+
+text.CountVectorizer.get_tokenized_text = get_tokenized_text
+
 # BayesModel = BernoulliNB(
 #     alpha=0.3,
 # )
