@@ -6,11 +6,12 @@ logging.set_verbosity_error()
 from sklearn.ensemble import VotingClassifier
 import joblib
 import numpy as np
-from src import BERT
+# from src import BERT
+from sklearn.linear_model import LogisticRegression
 import torch
 from sklearn.metrics import accuracy_score
 
-BertModel = BERT.BertModel
+# BertModel = BERT.BertModel
 
 def test_bayes():
     from sklearn.utils.extmath import safe_sparse_dot
@@ -80,6 +81,10 @@ def test_bayes():
 
 def test_lr():
     model = joblib.load('model_lr/LR.pkl')
+    # print(model.solver)
+    print(model.coef_)
+    print(model.intercept_)
+    print(model.n_iter_)
     preds = model.predict_proba([[0.01, 0.33, 0.2]])
     print(preds)
     exit()
@@ -107,9 +112,9 @@ def test_bert():
 
 
 if __name__ == "__main__":
-    # test_lr()
+    test_lr()
     # test_bayes()
-    test_bert()
+    # test_bert()
 
     model = joblib.load('model_bayes/Bayes.pkl')
     print(model['tfidf'].vocabulary_['00'])

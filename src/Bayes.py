@@ -1,26 +1,57 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction import text
+import sklearn
 
-BayesModel = BernoulliNB(
-    alpha=0.3,
-)
-"""
-Bernoulli Naive Bayes estimator from scikit-learn
-"""
+text.tokenized_text = []
 
-Vectorizer = CountVectorizer()
-"""
-Getting count of text and passing to bayes
-"""
+def patched_analyze(
+    doc,
+    analyzer=None,
+    tokenizer=None,
+    ngrams=None,
+    preprocessor=None,
+    decoder=None,
+    stop_words=None,
+):
+    if decoder is not None:
+        doc = decoder(doc)
+    if analyzer is not None:
+        doc = analyzer(doc)
+    else:
+        if preprocessor is not None:
+            doc = preprocessor(doc)
+        if tokenizer is not None:
+            doc = tokenizer(doc)
+            text.tokenized_text.append(doc)
+        if ngrams is not None:
+            if stop_words is not None:
+                doc = ngrams(doc, stop_words)
+            else:
+                doc = ngrams(doc)
+    return doc
 
-BayesPipeline = Pipeline([
-    ('tfidf', Vectorizer),
-    ('bayes', BayesModel),
-])
-"""
-Create a pipeline to handle the Bernoulli Naive Bayes (BNB)
-functions. First, it uses the count vectorizer to
-transform text into features that can be passed to the
-BNB estimator. The BNB estimator then provides the result
-"""
+text._analyze = patched_analyze
+
+# BayesModel = BernoulliNB(
+#     alpha=0.3,
+# )
+# """
+# Bernoulli Naive Bayes estimator from scikit-learn
+# """
+
+# Vectorizer = CountVectorizer()
+# """
+# Getting count of text and passing to bayes
+# """
+
+# BayesPipeline = Pipeline([
+#     ('tfidf', Vectorizer),
+#     ('bayes', BayesModel),
+# ])
+# """
+# Create a pipeline to handle the Bernoulli Naive Bayes (BNB)
+# functions. First, it uses the count vectorizer to
+# transform text into features that can be passed to the
+# BNB estimator. The BNB estimator then provides the result
+# """

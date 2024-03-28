@@ -131,7 +131,7 @@ LstmNet = NeuralNetClassifier(
     max_epochs=30,
     criterion=Criterion,
     optimizer=Optimizer,
-    batch_size=32,
+    batch_size=22769,
     device=_device,
     callbacks=[
         checkpoint, 

@@ -14,6 +14,13 @@ import torch
 import math
 from os.path import dirname
 
+def seed_random_number_generators(seed=0):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+
+seed_random_number_generators()
+
 # Function to convert markdown formatted text to plain text
 def unmark_element(element, stream=None):
     if stream is None:
@@ -162,13 +169,6 @@ def get_train_test_split(data_frame: pd.DataFrame, test_size: float):
         shuffled_train['label'],
         shuffled_test['label'],
     )
-
-def seed_random_number_generators(seed=0):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    np.random.seed(seed)
-    print("Random number generators seeded.")
-
 def save_history_to_csv(model, pipeline_model_name, filename):
     data_frame = pd.DataFrame(
         model[pipeline_model_name].history
