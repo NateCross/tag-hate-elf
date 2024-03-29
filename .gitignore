@@ -31,3 +31,5 @@ model_bert/*
 .vscode/*
 
 .~lock.*
+
+models/*
