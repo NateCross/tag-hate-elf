@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import PySimpleGUI as sg
 import joblib
 from PIL import Image
@@ -22,6 +23,7 @@ from transformers import (
 
 ##### INITIALIZATION #####
 
+# Force CPU only for compatibility reasons
 torch.cuda.is_available = lambda: False
 
 # Seed langdetect to make it more deterministic
@@ -33,6 +35,7 @@ DEVICE = 'cpu'
 
 MODELS_FOLDER = 'models'
 
+LEARNERS = None
 
 ##### LOADING FUNCTIONS #####
 
@@ -171,9 +174,9 @@ def load_learners():
     layout = [
         [sg.Text('Loading learners...', key='text')],
         [sg.ProgressBar(
-            max_value=6,
+            max_value=7,
             orientation='h', 
-            size=(20, 20), 
+            # size=(20, 20), 
             key='progress',
         )],
     ]
@@ -236,7 +239,6 @@ def load_learners():
         lr
     )
 
-
 def clean_text(text: str):
     """
     Processes the input text by removing unnecessary characters and sequences.
@@ -257,6 +259,162 @@ def clean_text(text: str):
     text = Utils.remove_stopwords(text)
     text = text.rstrip()
     return text
+
+##### LEARNER PREDICTION FUNCTIONS #####
+
+### Bayes ###
+
+def predict_bayes(inputs: list):
+    inputs_transformed = LEARNERS['tfidf'].transform(inputs)
+    predictions = LEARNERS['bayes'].predict(inputs_transformed)
+    return predictions
+
+def predict_proba_bayes(inputs: list):
+    inputs_transformed = LEARNERS['tfidf'].transform(inputs)
+    predictions = LEARNERS['bayes'].predict_proba(inputs_transformed)
+    return predictions
+
+### LSTM ###
+
+# Processing
+
+def get_calamancy_tokens(data):
+  # Allows it to work with both dataframes and
+  # simple lists of strings
+  if isinstance(data, pd.Series):
+    data = data.values
+
+  samples = []
+
+  for sample in LEARNERS['calamancy'].pipe(data):
+    tokens = [
+      token
+      for token
+      in sample
+    ]
+
+    samples.append(tokens)
+
+  return samples
+
+def get_calamancy_token_vectors(tokens):
+  vectors = []
+
+  for sample in tokens:
+    # vector = Tensor(np.array([token.vector for token in sample]))
+    token_vectors = []
+    # Check in case empty due to processing
+    if not sample:
+      token_vectors.append(np.zeros((200)))
+    else:
+      for token in sample:
+        if token.has_vector:
+          token_vectors.append(token.vector)
+    token_vectors = torch.tensor(np.array(token_vectors))
+
+    vectors.append(token_vectors)
+
+  return vectors
+
+def process_lstm(inputs):
+    tokens = get_calamancy_tokens(inputs)
+    vectors = get_calamancy_token_vectors(tokens)
+    return vectors
+
+# Predicting
+
+def predict_proba_lstm(inputs: list):
+    vectors = process_lstm(inputs)
+    preds = []
+    with torch.inference_mode():
+        for sample in vectors:
+            sample = sample.to(DEVICE)
+            sample_pred = LEARNERS['lstm'](sample)
+            preds.append(sample_pred)
+    preds = torch.cat(preds)
+    probabilities = nn.functional.softmax(preds, dim=0)
+
+    return probabilities.cpu()
+
+def predict_lstm(inputs: list):
+  probabilities = predict_proba_lstm(inputs)
+  discrete_probabilities = torch.argmax(
+    probabilities,
+    dim=1,
+  )
+  return discrete_probabilities
+
+### mBERT ###
+
+def process_bert(inputs):
+    BERT_MAX_LENGTH = 250
+
+    input_ids = []
+    attention_masks = []
+
+    for text in inputs:
+        # Tokenize the text
+        tokens = LEARNERS['bert_tokenizer'].tokenize(text)
+
+        # Truncate the tokens if necessary
+        if len(tokens) > BERT_MAX_LENGTH - 2:
+            tokens = tokens[:BERT_MAX_LENGTH - 2]
+
+        # Add special tokens
+        tokens = ['[CLS]'] + tokens + ['[SEP]']
+
+        # Convert tokens to token IDs
+        token_ids = LEARNERS['bert_tokenizer'].convert_tokens_to_ids(tokens)
+
+        # Pad the token IDs to BERT_MAX_LENGTH
+        padding = [0] * (BERT_MAX_LENGTH - len(token_ids))
+        token_ids += padding
+
+        # Create attention mask
+        attention_mask = [1] * len(tokens) + [0] * len(padding)
+
+        input_ids.append(token_ids)
+        attention_masks.append(attention_mask)
+
+    # Convert lists to tensors
+    input_ids = torch.tensor(input_ids).to(DEVICE)
+    attention_masks = torch.tensor(attention_masks).to(DEVICE)
+
+    return input_ids, attention_masks
+
+# Custom data loader
+def data_loader(input_ids, attention_masks, batch_size):
+    for i in range(0, len(input_ids), batch_size):
+        yield input_ids[i:i+batch_size], attention_masks[i:i+batch_size]
+
+def predict_proba_bert(inputs: list):
+  with torch.inference_mode():
+    input_ids, attention_masks = process_bert(inputs)
+
+    all_predictions = []
+    for batch_input_ids, batch_attention_masks in data_loader(input_ids, attention_masks, 5):
+      batch_input_ids = batch_input_ids.to(DEVICE)
+      batch_attention_masks = batch_attention_masks.to(DEVICE)
+
+      predictions = LEARNERS['bert'](
+        batch_input_ids,
+        attention_mask=batch_attention_masks,
+      ).logits
+
+      probabilities = nn.functional.softmax(predictions, dim=1)
+
+      all_predictions.append(probabilities)
+
+    return torch.cat(all_predictions).cpu()
+
+def predict_bert(inputs: list):
+  probabilities = predict_proba_bert(inputs)
+  discrete_probabilities = torch.argmax(
+    probabilities,
+    dim=1,
+  )
+  return discrete_probabilities
+
 
 def predict(ensemble, text: str):
     """
@@ -632,6 +790,21 @@ if __name__ == "__main__":
 
     learners = load_learners()
 
-    print(learners)
+    if not learners:
+        exit(1)
+
+    LEARNERS = {
+        'tfidf': learners[0],
+        'bayes': learners[1],
+        'calamancy': learners[2],
+        'lstm': learners[3],
+        'bert_tokenizer': learners[4],
+        'bert': learners[5],
+        'logistic_regression': learners[6],
+    }
+
+    print(predict_proba_bayes(['gago ka bobo']))
+    print(predict_proba_lstm(['gago ka bobo']))
+    print(predict_proba_bert(['gago ka bobo']))
 
     main_window()
