@@ -597,7 +597,13 @@ def predict_with_language_check(ensemble, text: str):
             title='Language Error'
         )
         return None, None  # Return None to indicate that no prediction was made
-    return predict(ensemble, text)
+    result = {
+        'hard': predict_hard_voting(text),
+        'soft': predict_soft_voting(text),
+        'stacking': predict_stacking(text),
+    }[ensemble]
+
+    return result, np.round(get_learner_single_predict_proba(text), 4)
 
 # The following functions, `hard_voting`, `soft_voting`, `stacking`, and `event_loop`,
 # define different ensemble strategies and handle the GUI event loop.
@@ -615,9 +621,10 @@ def hard_voting():
         ]
     ]
 
-    ensemble = load_ensemble('ensemble-hard.pkl')
-    if not ensemble:
-        return
+    # ensemble = load_ensemble('ensemble-hard.pkl')
+    # if not ensemble:
+    #     return
+    ensemble = 'hard'
 
     window = sg.Window(
         'Hard Voting Ensemble',
@@ -639,11 +646,11 @@ def hard_voting():
                 values['-INPUT-']
             )
             if result is None: continue
-            table_values[0][1:] = learner_predictions[0][0]
-            table_values[1][1:] = learner_predictions[1][0]
-            table_values[2][1:] = learner_predictions[2][0]
+            table_values[0][1:] = learner_predictions[0]
+            table_values[1][1:] = learner_predictions[1]
+            table_values[2][1:] = learner_predictions[2]
             window['-ENSEMBLE-'].update(
-                'Non-hate' if result[0] == 0 else 'Hate'
+                'Non-hate' if result == 0 else 'Hate'
             )
             window['-TABLE-'].update(table_values)
         elif event == sg.WIN_CLOSED or event == 'Exit':
@@ -667,9 +674,10 @@ def soft_voting():
         ]
     ]
 
-    ensemble = load_ensemble('ensemble-soft.pkl')
-    if not ensemble:
-        return
+    # ensemble = load_ensemble('ensemble-soft.pkl')
+    # if not ensemble:
+    #     return
+    ensemble = 'soft'
 
     window = sg.Window(
         'Soft Voting Ensemble',
@@ -691,11 +699,12 @@ def soft_voting():
                 values['-INPUT-']
             )
             if result is None: continue
-            table_values[0][1:] = learner_predictions[0][0]
-            table_values[1][1:] = learner_predictions[1][0]
-            table_values[2][1:] = learner_predictions[2][0]
+            result = np.round(result, 4)
+            table_values[0][1:] = learner_predictions[0]
+            table_values[1][1:] = learner_predictions[1]
+            table_values[2][1:] = learner_predictions[2]
             window['-ENSEMBLE-'].update(
-                f"Non-hate - {result[0][0]} | Hate - {result[0][1]}"
+                f"Non-hate - {result[0]} | Hate - {result[1]}"
             )
             window['-TABLE-'].update(table_values)
         elif event == sg.WIN_CLOSED or event == 'Exit':
@@ -719,9 +728,10 @@ def stacking():
         ]
     ]
 
-    ensemble = load_ensemble('ensemble-stacking.pkl')
-    if not ensemble:
-        return
+    # ensemble = load_ensemble('ensemble-stacking.pkl')
+    # if not ensemble:
+    #     return
+    ensemble = 'stacking'
 
     window = sg.Window(
         'Stacking Ensemble',
@@ -743,11 +753,12 @@ def stacking():
                 values['-INPUT-']
             )
             if result is None: continue
-            table_values[0][1:] = learner_predictions[0][0]
-            table_values[1][1:] = learner_predictions[1][0]
-            table_values[2][1:] = learner_predictions[2][0]
+            result = np.round(result, 4)
+            table_values[0][1:] = learner_predictions[0]
+            table_values[1][1:] = learner_predictions[1]
+            table_values[2][1:] = learner_predictions[2]
             window['-ENSEMBLE-'].update(
-                f"Non-hate - {result[0][0]} | Hate - {result[0][1]}"
+                f"Non-hate - {result[0]} | Hate - {result[1]}"
             )
             window['-TABLE-'].update(table_values)
         elif event == sg.WIN_CLOSED or event == 'Exit':
@@ -841,18 +852,5 @@ if __name__ == "__main__":
         'bert': learners[5],
         'logistic_regression': learners[6],
     }
-
-    print(predict_proba_bayes(['gago ka bobo']))
-    print(predict_proba_lstm(['gago ka bobo']))
-    print(predict_proba_bert(['gago ka bobo']))
-
-    print(get_learner_single_predict('gago ka bobo'))
-    print(get_learner_single_predict_proba('gago ka bobo'))
-
-    print("ENSEMBLES")
-
-    print(predict_hard_voting('gago ka bobo'))
-    print(predict_soft_voting('gago ka bobo'))
-    print(predict_stacking('gago ka bobo'))
 
     main_window()
