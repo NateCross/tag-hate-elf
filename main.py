@@ -1,7 +1,6 @@
 import numpy as np
 import PySimpleGUI as sg
 import joblib
-from sklearn.ensemble import VotingClassifier
 from PIL import Image
 import io
 from src import Utils
@@ -10,32 +9,99 @@ import gc
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import BernoulliNB
+from sklearn.linear_model import LogisticRegression
 
 import calamancy
-from torch import nn, optim, device, cuda
+import torch
+from torch import nn, device, cuda
 
 from transformers import (
     BertForSequenceClassification, 
     BertTokenizer
 )
 
+##### INITIALIZATION #####
+
+torch.cuda.is_available = lambda: False
+
 # Seed langdetect to make it more deterministic
 DetectorFactory.seed = 0
 
 # Use GPU if available
-DEVICE = device('cuda:0' if cuda.is_available() else 'cpu')
+# DEVICE = device('cuda:0' if cuda.is_available() else 'cpu')
+DEVICE = 'cpu'
 
-def prepare_tfidf():
-    return TfidfVectorizer()
+MODELS_FOLDER = 'models'
 
-def prepare_bayes():
-    return BernoulliNB()
+
+##### LOADING FUNCTIONS #####
+
+def load_joblib(filename: str):
+    """
+    Loads a pre-trained model from a specified file.
+
+    Parameters:
+    - filename (str): The path to the file containing the saved model.
+
+    Returns:
+    - The loaded model if the file is found, otherwise None.
+    """
+    try:
+        model = joblib.load(f'{MODELS_FOLDER}/{filename}')
+    except FileNotFoundError:
+        sg.PopupError(
+            f'ERROR: "{filename}" not found'
+        )
+        return None
+    return model
+
+def load_state_dict(model: nn.Module, filename: str):
+    """
+    Loads a pre-trained model from a specified state dict file.
+    Used for Pytorch neural networks.
+
+    Parameters:
+    - filename (str): The path to the file containing the saved state dict.
+
+    Returns:
+    - The loaded model if the file is found, otherwise None.
+    """
+    try:
+        state_dict = torch.load(
+            f'{MODELS_FOLDER}/{filename}',
+            map_location=DEVICE
+        )
+        model.load_state_dict(state_dict['model'])
+    except FileNotFoundError:
+        sg.PopupError(
+            f'ERROR: "{filename}" not found'
+        )
+        return None
+    return model
+
+
+###### LEARNER PREPARATION ######
+
+def load_tfidf() -> TfidfVectorizer:
+    """
+    Load TF-IDF. Since it is sklearn and saved through
+    joblib, we can just load the joblib file
+    """
+    # return TfidfVectorizer()
+    return load_joblib('model_bayes/best/tfidf.pkl')
+
+def load_bayes() -> BernoulliNB:
+    """
+    Load Bernoulli Naive Bayes. Since it is sklearn and saved 
+    through joblib, we can just load the joblib file
+    """
+    return load_joblib('model_bayes/best/bayes.pkl')
 
 def prepare_calamancy():
     calamancy_model_name = "tl_calamancy_md-0.1.0"
     return calamancy.load(calamancy_model_name)
 
-def prepare_lstm():
+def prepare_lstm() -> nn.Module:
     INPUT_SIZE = 200  # Size of CalamanCy token vectors
     LSTM_OUTPUT_SIZE = 50
     LINEAR_OUTPUT_SIZE = 2
@@ -65,38 +131,111 @@ def prepare_lstm():
 
     return Lstm
 
+def load_lstm(model: nn.Module):
+    return load_state_dict(
+        model, 
+        'model_lstm/best/lstm_checkpoint.pth',
+    )
+
 def prepare_bert_tokenizer():
     MODEL_NAME = "bert-base-multilingual-uncased"
 
     return BertTokenizer.from_pretrained(MODEL_NAME)
 
-def prepare_bert():
+def prepare_bert() -> BertForSequenceClassification:
     MODEL_NAME = "bert-base-multilingual-uncased"
 
     return BertForSequenceClassification.from_pretrained(
         MODEL_NAME,
         num_labels=2,
+    ).to(DEVICE)
+
+def load_bert(model: BertForSequenceClassification):
+    return load_state_dict(
+        model, 
+        'model_bert/best/bert_checkpoint.pth',
     )
 
+def load_logistic_regression() -> LogisticRegression:
+    return load_joblib('model_lr/best/lr.pkl')
 
-def load_joblib(filename: str):
+
+##### LOAD LEARNERS #####
+
+def load_learners():
     """
-    Loads a pre-trained model from a specified file.
-
-    Parameters:
-    - filename (str): The path to the file containing the saved model.
-
-    Returns:
-    - The loaded model if the file is found, otherwise None.
+    Window to show loading for learners
     """
-    try:
-        model = joblib.load(filename)
-    except FileNotFoundError:
-        sg.PopupError(
-            f'ERROR: "{filename}" not found'
-        )
-        return None
-    return model
+    from time import sleep
+
+    layout = [
+        [sg.Text('Loading learners...', key='text')],
+        [sg.ProgressBar(
+            max_value=6,
+            orientation='h', 
+            size=(20, 20), 
+            key='progress',
+        )],
+    ]
+    window = sg.Window(
+        'Loading learners', 
+        layout, 
+        finalize=True
+    )
+
+    text = window['text']
+    progress_bar = window['progress']
+
+    # Load learners and update progress
+
+    text.update('Loading TF-IDF')
+    tfidf = load_tfidf()
+    progress_bar.update_bar(1)
+    sleep(1)
+
+    text.update('Loading Bernoulli Naive Bayes')
+    bayes = load_bayes()
+    progress_bar.update_bar(2)
+    sleep(1)
+
+    text.update('Loading CalamanCy')
+    calamancy = prepare_calamancy()
+    progress_bar.update_bar(3)
+    sleep(1)
+
+    text.update('Loading LSTM')
+    lstm = prepare_lstm()
+    lstm_loaded = load_lstm(lstm)
+    progress_bar.update_bar(4)
+    sleep(1)
+
+    text.update('Loading BERT Tokenizer')
+    bert_tokenizer = prepare_bert_tokenizer()
+    progress_bar.update_bar(5)
+    sleep(1)
+
+    text.update('Loading BERT')
+    bert = prepare_bert()
+    bert_loaded = load_bert(bert)
+    progress_bar.update_bar(6)
+    sleep(1)
+
+    text.update('Loading Logistic Regression')
+    lr = load_logistic_regression()
+    sleep(1)
+
+    window.close()
+
+    return (
+        tfidf,
+        bayes,
+        calamancy,
+        lstm_loaded,
+        bert_tokenizer,
+        bert_loaded,
+        lr
+    )
+
 
 def clean_text(text: str):
     """
@@ -489,4 +628,10 @@ def main_window():
 
 
 if __name__ == "__main__":
+    sg.theme('LightBlue5')
+
+    learners = load_learners()
+
+    print(learners)
+
     main_window()
