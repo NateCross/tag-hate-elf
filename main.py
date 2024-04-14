@@ -340,7 +340,7 @@ def predict_lstm(inputs: list):
   probabilities = predict_proba_lstm(inputs)
   discrete_probabilities = torch.argmax(
     probabilities,
-    dim=1,
+    dim=0,
   )
   return discrete_probabilities
 
@@ -415,6 +415,45 @@ def predict_bert(inputs: list):
   )
   return discrete_probabilities
 
+##### CONCATENATE LEARNER PREDICTIONS ######
+
+def get_learner_single_predict(input: str):
+    text = clean_text(input)
+    bayes_pred = predict_bayes([text])
+    lstm_pred = predict_lstm([text])
+    bert_pred = predict_bert([text])
+    return np.array([
+        bayes_pred[0],
+        lstm_pred.detach().numpy(),
+        bert_pred[0].detach().numpy(),
+    ])
+
+def get_learner_single_predict_proba(input: str):
+    text = clean_text(input)
+    bayes_pred = predict_proba_bayes([text])
+    lstm_pred = predict_proba_lstm([text])
+    bert_pred = predict_proba_bert([text])
+    return np.array([
+        bayes_pred[0],
+        lstm_pred.detach().numpy(),
+        bert_pred[0].detach().numpy(),
+    ])
+
+##### ENSEMBLE METHODS #####
+
+def predict_hard_voting(input: str):
+    preds = get_learner_single_predict(input)
+    return np.bincount(preds).argmax()
+
+def predict_soft_voting(input: str):
+    preds = get_learner_single_predict_proba(input)
+    return np.average(preds, axis=0)
+
+def predict_stacking(input: str):
+    preds = get_learner_single_predict_proba(input)
+    individual_preds = preds[:, 1:]
+    transposed_preds = individual_preds.T
+    return LEARNERS['logistic_regression'].predict_proba(transposed_preds)[0]
 
 def predict(ensemble, text: str):
     """
@@ -806,5 +845,14 @@ if __name__ == "__main__":
     print(predict_proba_bayes(['gago ka bobo']))
     print(predict_proba_lstm(['gago ka bobo']))
     print(predict_proba_bert(['gago ka bobo']))
+
+    print(get_learner_single_predict('gago ka bobo'))
+    print(get_learner_single_predict_proba('gago ka bobo'))
+
+    print("ENSEMBLES")
+
+    print(predict_hard_voting('gago ka bobo'))
+    print(predict_soft_voting('gago ka bobo'))
+    print(predict_stacking('gago ka bobo'))
 
     main_window()
