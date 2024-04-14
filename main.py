@@ -8,27 +8,95 @@ from src import Utils
 from langdetect import detect_langs, LangDetectException, DetectorFactory
 import gc
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import BernoulliNB
+
+import calamancy
+from torch import nn, optim, device, cuda
+
+from transformers import (
+    BertForSequenceClassification, 
+    BertTokenizer
+)
+
 # Seed langdetect to make it more deterministic
 DetectorFactory.seed = 0
 
-def load_ensemble(filename: str):
+# Use GPU if available
+DEVICE = device('cuda:0' if cuda.is_available() else 'cpu')
+
+def prepare_tfidf():
+    return TfidfVectorizer()
+
+def prepare_bayes():
+    return BernoulliNB()
+
+def prepare_calamancy():
+    calamancy_model_name = "tl_calamancy_md-0.1.0"
+    return calamancy.load(calamancy_model_name)
+
+def prepare_lstm():
+    INPUT_SIZE = 200  # Size of CalamanCy token vectors
+    LSTM_OUTPUT_SIZE = 50
+    LINEAR_OUTPUT_SIZE = 2
+
+    class LstmModel(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.lstm = nn.LSTM(
+                INPUT_SIZE,
+                LSTM_OUTPUT_SIZE,
+            )
+            self.linear = nn.Linear(
+                LSTM_OUTPUT_SIZE, 
+                LINEAR_OUTPUT_SIZE,
+            )
+
+        def forward(self, input):
+            lstm_output, _ = self.lstm(input)
+
+            linear_output = self.linear(lstm_output[-1])
+
+            return linear_output
+
+    Lstm = LstmModel()
+
+    Lstm.to(DEVICE)
+
+    return Lstm
+
+def prepare_bert_tokenizer():
+    MODEL_NAME = "bert-base-multilingual-uncased"
+
+    return BertTokenizer.from_pretrained(MODEL_NAME)
+
+def prepare_bert():
+    MODEL_NAME = "bert-base-multilingual-uncased"
+
+    return BertForSequenceClassification.from_pretrained(
+        MODEL_NAME,
+        num_labels=2,
+    )
+
+
+def load_joblib(filename: str):
     """
-    Loads a pre-trained ensemble model from a specified file.
+    Loads a pre-trained model from a specified file.
 
     Parameters:
-    - filename (str): The path to the file containing the saved ensemble model.
+    - filename (str): The path to the file containing the saved model.
 
     Returns:
-    - The loaded ensemble model if the file is found, otherwise None.
+    - The loaded model if the file is found, otherwise None.
     """
     try:
-        ensemble = joblib.load(filename)
+        model = joblib.load(filename)
     except FileNotFoundError:
         sg.PopupError(
-            f'ERROR: "{filename}" not found. Please train the ensemble first.'
+            f'ERROR: "{filename}" not found'
         )
         return None
-    return ensemble
+    return model
 
 def clean_text(text: str):
     """
@@ -45,6 +113,9 @@ def clean_text(text: str):
     text = Utils.remove_usernames(text)
     text = Utils.remove_emojis(text)
     text = Utils.remove_escape_sequences(text)
+    text = Utils.lowercase_text(text)
+    text = Utils.remove_punctuation(text)
+    text = Utils.remove_stopwords(text)
     text = text.rstrip()
     return text
 
@@ -363,7 +434,6 @@ def event_loop(window: sg.Window):
         elif event == 'Stacking':
             stacking()
 
-# Function to resize an image using PIL
 def get_resized_image(image_path, width, height):
     """
     Resizes an image to specified dimensions using PIL.
