@@ -23,14 +23,9 @@ from transformers import (
 
 ##### INITIALIZATION #####
 
-# Force CPU only for compatibility reasons
-torch.cuda.is_available = lambda: False
-
 # Seed langdetect to make it more deterministic
 DetectorFactory.seed = 0
 
-# Use GPU if available
-# DEVICE = device('cuda:0' if cuda.is_available() else 'cpu')
 DEVICE = 'cpu'
 
 MODELS_FOLDER = 'models'
@@ -106,7 +101,7 @@ def prepare_calamancy():
 
 def prepare_lstm() -> nn.Module:
     INPUT_SIZE = 200  # Size of CalamanCy token vectors
-    LSTM_OUTPUT_SIZE = 50
+    HIDDEN_SIZE = 50
     LINEAR_OUTPUT_SIZE = 2
 
     class LstmModel(nn.Module):
@@ -114,10 +109,10 @@ def prepare_lstm() -> nn.Module:
             super().__init__()
             self.lstm = nn.LSTM(
                 INPUT_SIZE,
-                LSTM_OUTPUT_SIZE,
+                HIDDEN_SIZE,
             )
             self.linear = nn.Linear(
-                LSTM_OUTPUT_SIZE, 
+                HIDDEN_SIZE, 
                 LINEAR_OUTPUT_SIZE,
             )
 
@@ -254,9 +249,6 @@ def clean_text(text: str):
     text = Utils.remove_usernames(text)
     text = Utils.remove_emojis(text)
     text = Utils.remove_escape_sequences(text)
-    text = Utils.lowercase_text(text)
-    text = Utils.remove_punctuation(text)
-    text = Utils.remove_stopwords(text)
     text = text.rstrip()
     return text
 
@@ -591,12 +583,12 @@ def predict_with_language_check(ensemble, text: str):
     - The prediction result and the individual learner predictions, or None if the
     language check fails.
     """
-    if not check_language(text):
-        sg.PopupError(
-            'Error: Input must be in English or Tagalog.', 
-            title='Language Error'
-        )
-        return None, None  # Return None to indicate that no prediction was made
+    # if not check_language(text):
+    #     sg.PopupError(
+    #         'Error: Input must be in English or Tagalog.', 
+    #         title='Language Error'
+    #     )
+    #     return None, None  # Return None to indicate that no prediction was made
     result = {
         'hard': predict_hard_voting(text),
         'soft': predict_soft_voting(text),
