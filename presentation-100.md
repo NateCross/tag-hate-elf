@@ -14,8 +14,9 @@
 - [Filter Data](./notebook/filter-data.ipynb)
 - [Processing After Annotation](./notebook/final-prep.ipynb)
 
-## Models
+## 100%
 
+- [Split Dataset](./make_train_test_split.ipynb)
 - [Bernoulli Naive Bayes](./bayes_train.ipynb)
 - [LSTM](./lstm_train.ipynb)
 - [mBERT](./bert_train.ipynb)
