@@ -1,5 +1,7 @@
 # 100% Implementation Defense
 
+Click any of the links below to view the file.
+
 ## Datasets
 
 - [Reddit PH Hate Speech](./datasets/annotated-dataset.csv)
