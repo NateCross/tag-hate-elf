@@ -471,6 +471,8 @@ def predict(ensemble, text: str):
             learner_predictions,
         )
 
+##### UI #####
+
 def loading_popup(ensemble_string: str):
     """
     Displays a non-blocking popup indicating that an ensemble model is being loaded.
@@ -511,10 +513,18 @@ def input_column():
     """
     return sg.Column([
         [sg.Text("Input text:")],
-        [sg.Multiline(size=(40, 8), key='-INPUT-')],
+        [sg.Multiline(
+            size=(40, 8), 
+            key='-INPUT-',
+            focus=True,
+
+        )],
         [
-            sg.Exit(),
+            sg.Exit(
+                button_text='Return',
+            ),
             sg.Push(),
+            sg.Button('Clear'),
             sg.Button('Predict'),
         ],
     ])
@@ -542,6 +552,36 @@ def output_column(table_values):
                 'Learner',
                 '0 (Non-hate)', 
                 '1 (Hate)',
+            )
+        )],
+        [
+            sg.Text('Ensemble:', justification='r'), 
+            sg.Text('-', key='-ENSEMBLE-', justification='l'),
+        ],
+    ], element_justification='c')
+
+def output_column_hard(table_values):
+    """
+    Creates the GUI column for displaying output in hard voting.
+
+    Parameters:
+    - table_values: The values to display in the output table.
+
+    Returns:
+    - A PySimpleGUI Column element containing the output table.
+    """
+    return sg.Column([
+        [sg.Table(
+            values=table_values, 
+            auto_size_columns=True,
+            hide_vertical_scroll=True,
+            justification='center',
+            cols_justification=('r', 'c'),
+            num_rows=3,
+            key='-TABLE-',
+            headings=(
+                'Learner',
+                'Vote',
             )
         )],
         [
@@ -595,7 +635,10 @@ def predict_with_language_check(ensemble, text: str):
         'stacking': predict_stacking(text),
     }[ensemble]
 
-    return result, np.round(get_learner_single_predict_proba(text), 4)
+    if ensemble == 'hard':
+        return result, get_learner_single_predict(text)
+    else:
+        return result, np.round(get_learner_single_predict_proba(text), 4)
 
 # The following functions, `hard_voting`, `soft_voting`, `stacking`, and `event_loop`,
 # define different ensemble strategies and handle the GUI event loop.
@@ -604,7 +647,7 @@ def hard_voting():
     loading_popup('hard voting')
     table_values = default_table_values()
     input_column_element = input_column()
-    output_column_element = output_column(table_values)
+    output_column_element = output_column_hard(table_values)
     layout = [
         [
             input_column_element, 
@@ -613,9 +656,6 @@ def hard_voting():
         ]
     ]
 
-    # ensemble = load_ensemble('ensemble-hard.pkl')
-    # if not ensemble:
-    #     return
     ensemble = 'hard'
 
     window = sg.Window(
@@ -638,14 +678,16 @@ def hard_voting():
                 values['-INPUT-']
             )
             if result is None: continue
-            table_values[0][1:] = learner_predictions[0]
-            table_values[1][1:] = learner_predictions[1]
-            table_values[2][1:] = learner_predictions[2]
+            table_values[0][1] = learner_predictions[0]
+            table_values[1][1] = learner_predictions[1]
+            table_values[2][1] = learner_predictions[2]
             window['-ENSEMBLE-'].update(
                 'Non-hate' if result == 0 else 'Hate'
             )
             window['-TABLE-'].update(table_values)
-        elif event == sg.WIN_CLOSED or event == 'Exit':
+        elif event == 'Clear':
+            window['-INPUT-'].update('')
+        elif event == sg.WIN_CLOSED or event == 'Return':
             break
 
     window.close()
@@ -666,9 +708,6 @@ def soft_voting():
         ]
     ]
 
-    # ensemble = load_ensemble('ensemble-soft.pkl')
-    # if not ensemble:
-    #     return
     ensemble = 'soft'
 
     window = sg.Window(
@@ -699,7 +738,9 @@ def soft_voting():
                 f"Non-hate - {result[0]} | Hate - {result[1]}"
             )
             window['-TABLE-'].update(table_values)
-        elif event == sg.WIN_CLOSED or event == 'Exit':
+        elif event == 'Clear':
+            window['-INPUT-'].update('')
+        elif event == sg.WIN_CLOSED or event == 'Return':
             break
 
     window.close()
@@ -720,9 +761,6 @@ def stacking():
         ]
     ]
 
-    # ensemble = load_ensemble('ensemble-stacking.pkl')
-    # if not ensemble:
-    #     return
     ensemble = 'stacking'
 
     window = sg.Window(
@@ -753,7 +791,9 @@ def stacking():
                 f"Non-hate - {result[0]} | Hate - {result[1]}"
             )
             window['-TABLE-'].update(table_values)
-        elif event == sg.WIN_CLOSED or event == 'Exit':
+        elif event == 'Clear':
+            window['-INPUT-'].update('')
+        elif event == sg.WIN_CLOSED or event == 'Return':
             break
 
     window.close()
