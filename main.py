@@ -5,7 +5,6 @@ import joblib
 from PIL import Image
 import io
 from src import Utils
-from langdetect import detect_langs, LangDetectException, DetectorFactory
 import gc
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -14,7 +13,7 @@ from sklearn.linear_model import LogisticRegression
 
 import calamancy
 import torch
-from torch import nn, device, cuda
+from torch import nn
 
 from transformers import (
     BertForSequenceClassification, 
@@ -22,9 +21,6 @@ from transformers import (
 )
 
 ##### INITIALIZATION #####
-
-# Seed langdetect to make it more deterministic
-DetectorFactory.seed = 0
 
 DEVICE = 'cpu'
 
@@ -85,7 +81,6 @@ def load_tfidf() -> TfidfVectorizer:
     Load TF-IDF. Since it is sklearn and saved through
     joblib, we can just load the joblib file
     """
-    # return TfidfVectorizer()
     return load_joblib('model_bayes/best/tfidf.pkl')
 
 def load_bayes() -> BernoulliNB:
@@ -171,7 +166,8 @@ def load_learners():
         [sg.ProgressBar(
             max_value=7,
             orientation='h', 
-            # size=(20, 20), 
+            # expand_x=True,
+            size=(35, 20),
             key='progress',
         )],
     ]
@@ -447,30 +443,6 @@ def predict_stacking(input: str):
     transposed_preds = individual_preds.T
     return LEARNERS['logistic_regression'].predict_proba(transposed_preds)[0]
 
-def predict(ensemble, text: str):
-    """
-    Predicts the class of the input text using the ensemble model.
-
-    Parameters:
-    - ensemble: The ensemble model used for prediction.
-    - text (str): The input text to classify.
-
-    Returns:
-    - The prediction result and the individual learner predictions.
-    """
-    text = clean_text(text)
-    learner_predictions = [
-        np.round(estimator.predict_proba([text]), 4)
-        for estimator in ensemble.estimators_
-    ]
-    if isinstance(ensemble, VotingClassifier) and ensemble.voting == 'hard':
-        return ensemble.predict([text]), learner_predictions
-    else:
-        return (
-            np.round(ensemble.predict_proba([text]), 4), 
-            learner_predictions,
-        )
-
 ##### UI #####
 
 def loading_popup(ensemble_string: str):
@@ -504,7 +476,7 @@ def default_table_values():
         ['mBERT', '-', '-'],
     ]
 
-def input_column():
+def input_column(ensemble):
     """
     Creates the GUI column for inputting text.
 
@@ -512,6 +484,7 @@ def input_column():
     - A PySimpleGUI Column element containing the input text field and buttons.
     """
     return sg.Column([
+        [sg.Text(ensemble, font=('Helvetica', 16))],
         [sg.Text("Input text:")],
         [sg.Multiline(
             size=(40, 8), 
@@ -542,7 +515,7 @@ def output_column(table_values):
     return sg.Column([
         [sg.Table(
             values=table_values, 
-            auto_size_columns=True,
+            auto_size_columns=False,
             hide_vertical_scroll=True,
             justification='center',
             cols_justification=('r', 'c', 'c'),
@@ -552,7 +525,8 @@ def output_column(table_values):
                 'Learner',
                 '0 (Non-hate)', 
                 '1 (Hate)',
-            )
+            ),
+            col_widths=(12, 17, 17)
         )],
         [
             sg.Text('Ensemble:', justification='r'), 
@@ -573,7 +547,7 @@ def output_column_hard(table_values):
     return sg.Column([
         [sg.Table(
             values=table_values, 
-            auto_size_columns=True,
+            auto_size_columns=False,
             hide_vertical_scroll=True,
             justification='center',
             cols_justification=('r', 'c'),
@@ -582,7 +556,8 @@ def output_column_hard(table_values):
             headings=(
                 'Learner',
                 'Vote',
-            )
+            ),
+            col_widths=(12, 8)
         )],
         [
             sg.Text('Ensemble:', justification='r'), 
@@ -590,28 +565,7 @@ def output_column_hard(table_values):
         ],
     ], element_justification='c')
 
-def check_language(text):
-    """
-    Checks the language of the input text.
-
-    Parameters:
-    - text (str): The input text to check.
-
-    Returns:
-    - True if the text is in English or Tagalog, False otherwise.
-    """
-    try:
-        # Detect the language of the text
-        langs = detect_langs(text)
-    except LangDetectException:
-        # Return False if language detection fails
-        return False
-    # Return True if the text is in English or Tagalog, False otherwise
-    # Implementing like this over detect to allow for text
-    # where en or tl are not the most prominent language
-    return any(lang.lang in ['en', 'tl'] for lang in langs)
-
-def predict_with_language_check(ensemble, text: str):
+def predict(ensemble, text: str):
     """
     Performs a language check before predicting the class of the input text.
 
@@ -623,12 +577,6 @@ def predict_with_language_check(ensemble, text: str):
     - The prediction result and the individual learner predictions, or None if the
     language check fails.
     """
-    # if not check_language(text):
-    #     sg.PopupError(
-    #         'Error: Input must be in English or Tagalog.', 
-    #         title='Language Error'
-    #     )
-    #     return None, None  # Return None to indicate that no prediction was made
     result = {
         'hard': predict_hard_voting(text),
         'soft': predict_soft_voting(text),
@@ -646,7 +594,7 @@ def predict_with_language_check(ensemble, text: str):
 def hard_voting():
     loading_popup('hard voting')
     table_values = default_table_values()
-    input_column_element = input_column()
+    input_column_element = input_column('Hard Voting')
     output_column_element = output_column_hard(table_values)
     layout = [
         [
@@ -673,7 +621,7 @@ def hard_voting():
                 window['-ENSEMBLE-'].update('-')
                 window['-TABLE-'].update(default_table_values())
                 continue
-            result, learner_predictions = predict_with_language_check(
+            result, learner_predictions = predict(
                 ensemble, 
                 values['-INPUT-']
             )
@@ -698,7 +646,7 @@ def hard_voting():
 def soft_voting():
     loading_popup('soft voting')
     table_values = default_table_values()
-    input_column_element = input_column()
+    input_column_element = input_column('Soft Voting')
     output_column_element = output_column(table_values)
     layout = [
         [
@@ -725,7 +673,7 @@ def soft_voting():
                 window['-ENSEMBLE-'].update('-')
                 window['-TABLE-'].update(default_table_values())
                 continue
-            result, learner_predictions = predict_with_language_check(
+            result, learner_predictions = predict(
                 ensemble, 
                 values['-INPUT-']
             )
@@ -751,7 +699,7 @@ def soft_voting():
 def stacking():
     loading_popup('stacking')
     table_values = default_table_values()
-    input_column_element = input_column()
+    input_column_element = input_column('Stacking')
     output_column_element = output_column(table_values)
     layout = [
         [
@@ -778,7 +726,7 @@ def stacking():
                 window['-ENSEMBLE-'].update('-')
                 window['-TABLE-'].update(default_table_values())
                 continue
-            result, learner_predictions = predict_with_language_check(
+            result, learner_predictions = predict(
                 ensemble, 
                 values['-INPUT-']
             )
