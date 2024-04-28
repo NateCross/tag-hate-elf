@@ -272,14 +272,17 @@ def get_calamancy_tokens(data):
   if isinstance(data, pd.Series):
     data = data.values
 
+  data = [text.lower() for text in data]
+
   samples = []
 
   for sample in LEARNERS['calamancy'].pipe(data):
-    tokens = [
-      token
-      for token
-      in sample
-    ]
+    tokens = []
+    for token in sample:
+      if token.is_punct: continue
+      if token.is_space: continue
+
+      tokens.append(token)
 
     samples.append(tokens)
 
@@ -490,7 +493,7 @@ def input_column(ensemble):
             size=(40, 8), 
             key='-INPUT-',
             focus=True,
-
+            autoscroll_only_at_bottom=True,
         )],
         [
             sg.Exit(
