@@ -1,47 +1,63 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
-from os.path import dirname
+from sklearn.feature_extraction import text
+import sklearn
 
-BayesModel = BernoulliNB()
-"""
-Bernoulli Naive Bayes estimator from scikit-learn
-"""
+text.tokenized_text = []
 
-STOP_WORDS = open(
-    f"{dirname(__file__)}/stopwords-tl.txt", 
-    "r",
-).read().split('\n')
-"""
-Import stop words for further fine tuning
-with the vectorizer
-These are frequent Tagalog words which do not contribute
-to the text, and as such, can be omitted
+def patched_analyze(
+    doc,
+    analyzer=None,
+    tokenizer=None,
+    ngrams=None,
+    preprocessor=None,
+    decoder=None,
+    stop_words=None,
+):
+    if decoder is not None:
+        doc = decoder(doc)
+    if analyzer is not None:
+        doc = analyzer(doc)
+    else:
+        if preprocessor is not None:
+            doc = preprocessor(doc)
+        if tokenizer is not None:
+            doc = tokenizer(doc)
+            text.tokenized_text.append(doc)
+        if ngrams is not None:
+            if stop_words is not None:
+                doc = ngrams(doc, stop_words)
+            else:
+                doc = ngrams(doc)
+    return doc
 
-To properly account for relative file location, we get the
-directory of this script, Bayes.py, and find stopwords-tl.txt
-This is because scripts that import this from the root directory
-will fail to find the stopwords file
+text._analyze = patched_analyze
 
-List taken from:
-https://github.com/stopwords-iso/stopwords-tl/blob/master/stopwords-tl.txt
-"""
+def get_tokenized_text(self):
+    return text.tokenized_text
 
-Vectorizer = TfidfVectorizer(
-    stop_words=STOP_WORDS,
-)
-"""
-We need to transform text into numerical values
-This is one of the ways to do it
-"""
+text.CountVectorizer.get_tokenized_text = get_tokenized_text
+text.TfidfVectorizer.get_tokenized_text = get_tokenized_text
 
-BayesPipeline = Pipeline([
-    ('tfidf', Vectorizer),
-    ('bayes', BayesModel),
-])
-"""
-Create a pipeline to handle the Bernoulli Naive Bayes (BNB)
-functions. First, it uses the TF-IDF vectorizer to
-transform text into features that can be passed to the
-BNB estimator. The BNB estimator then provides the result
-"""
+# BayesModel = BernoulliNB(
+#     alpha=0.3,
+# )
+# """
+# Bernoulli Naive Bayes estimator from scikit-learn
+# """
+
+# Vectorizer = CountVectorizer()
+# """
+# Getting count of text and passing to bayes
+# """
+
+# BayesPipeline = Pipeline([
+#     ('tfidf', Vectorizer),
+#     ('bayes', BayesModel),
+# ])
+# """
+# Create a pipeline to handle the Bernoulli Naive Bayes (BNB)
+# functions. First, it uses the count vectorizer to
+# transform text into features that can be passed to the
+# BNB estimator. The BNB estimator then provides the result
+# """

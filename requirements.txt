@@ -20,3 +20,4 @@ calamanCy
 PySimpleGUI
 accelerate
 langdetect
+torchinfo

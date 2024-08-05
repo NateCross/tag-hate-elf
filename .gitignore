@@ -23,3 +23,13 @@ history.json
 
 train_bert/*
 train_lstm/*
+
+model_bayes/*
+model_lstm/*
+model_bert/*
+
+.vscode/*
+
+.~lock.*
+
+models/*
