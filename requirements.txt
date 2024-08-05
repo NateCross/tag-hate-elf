@@ -21,3 +21,4 @@ PySimpleGUI
 accelerate
 langdetect
 torchinfo
+discord.py
