@@ -33,3 +33,5 @@ model_bert/*
 .~lock.*
 
 models/*
+
+pysimplegui-license-key.txt

@@ -13,6 +13,9 @@ from sklearn.metrics import (
 import torch
 import math
 from os.path import dirname
+from collections import Counter
+
+random_number_generator = np.random.default_rng(seed=0)
 
 def seed_random_number_generators(seed=0):
     torch.manual_seed(seed)
@@ -101,7 +104,6 @@ def shuffle_data_frame(data_frame):
 
     # Make a random number generator that will shuffle list of indices
     # It is seeded to be reproducible
-    random_number_generator = np.random.default_rng(seed=0)
     random_number_generator.shuffle(indices)
 
     shuffled_text = []
@@ -124,7 +126,7 @@ def get_train_test_split(data_frame: pd.DataFrame, test_size: float):
     Makes a stratified train test split.
     This aims to preserve the distribution between classes.
     """
-    if not (1 >= test_size >= 0):
+    if not (1 > test_size > 0):
         print('ERROR: test_size must be between 0 and 1')
         return
 
@@ -181,3 +183,18 @@ def get_stop_words():
         "r",
     ).read().split('\n')
     return STOP_WORDS
+
+def lowercase_text(text: str):
+  return text.lower()
+
+def remove_punctuation(text: str):
+  # Pattern to match nonwords and nonwhitespace
+  return re.sub(r'[^\w\s]', '', text)
+
+def remove_stopwords(text: str):
+  stopwords_list = get_stop_words()
+  stopwords_dict = Counter(stopwords_list)
+  return ' '.join([
+    word for word in text.split()
+    if word not in stopwords_dict
+  ])
